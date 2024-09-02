@@ -54,6 +54,7 @@ export default function Landing() {
         options: {
           emailRedirectTo: process.env.NEXT_PUBLIC_REDIRECT_URL,
         },
+        //blahhh
       });
       if (error) {
         setIsError(true);
