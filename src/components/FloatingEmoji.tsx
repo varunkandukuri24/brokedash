@@ -11,8 +11,8 @@ const FloatingEmoji: React.FC<FloatingEmojiProps> = ({ emoji, size }) => {
   const emojiRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const emoji = emojiRef.current;
-    if (!emoji) return;
+    const emojiElement = emojiRef.current;
+    if (!emojiElement) return;
 
     let x = Math.random() * (window.innerWidth - size);
     let y = Math.random() * (window.innerHeight - size);
@@ -20,7 +20,7 @@ const FloatingEmoji: React.FC<FloatingEmojiProps> = ({ emoji, size }) => {
     let dy = (Math.random() - 0.5) * 4;
 
     const animate = () => {
-      if (!emoji) return;
+      if (!emojiElement) return;
 
       x += dx;
       y += dy;
@@ -34,9 +34,7 @@ const FloatingEmoji: React.FC<FloatingEmojiProps> = ({ emoji, size }) => {
       // Ensure the emoji doesn't go above the navbar
       y = Math.max(y, navbarHeight);
 
-    
-      emoji.style.left = `${x}px`;
-      emoji.style.top = `${y}px`;
+      emojiElement.style.transform = `translate(${x}px, ${y}px)`;
 
       requestAnimationFrame(animate);
     };
@@ -47,10 +45,13 @@ const FloatingEmoji: React.FC<FloatingEmojiProps> = ({ emoji, size }) => {
   return (
     <div
       ref={emojiRef}
-      className="absolute"
+      className="absolute left-0 top-0"
       style={{
         fontSize: `${size}px`,
-        transition: 'all 0.1s linear'
+        willChange: 'transform',
+        backfaceVisibility: 'hidden',
+        WebkitFontSmoothing: 'antialiased',
+        MozOsxFontSmoothing: 'grayscale',
       }}
     >
       {emoji}
