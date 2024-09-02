@@ -52,7 +52,7 @@ export default function Landing() {
       const { error } = await supabase.auth.signInWithOtp({ 
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/userinput`,
+          emailRedirectTo: process.env.NEXT_PUBLIC_USERINPUT_DEV_URL || `${window.location.origin}/userinput`,
         },
       });
       if (error) {
