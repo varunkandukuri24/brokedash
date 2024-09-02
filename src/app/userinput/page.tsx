@@ -3,8 +3,11 @@
 import { useState } from 'react'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import ProtectedRoute from '@/components/ProtectedRoute'
+import { useRouter } from 'next/navigation'
 
 export default function Component() {
+  const router = useRouter(); // Ensure useRouter is used within a Next.js context
   const [monthlySpend, setMonthlySpend] = useState('')
   const [income, setIncome] = useState('50k-150k')
 
@@ -16,6 +19,7 @@ export default function Component() {
   ]
 
   return (
+    <ProtectedRoute>
     <div className="bg-lightAccent min-h-screen flex items-center justify-center">
       <div className="bg-orange-200 border-black border-4 rounded-lg shadow-2xl w-4/5 sm:w-4/5 md:w-3/5 lg:w-2/5 xl:w-2/3 mx-auto flex flex-col">
         <h2 className="text-lg font-bold text-center text-white bg-black p-2">Enter your monthly spend</h2>
@@ -59,5 +63,6 @@ export default function Component() {
         </div>
       </div>
     </div>
+    </ProtectedRoute>
   )
 }

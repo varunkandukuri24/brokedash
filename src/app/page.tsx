@@ -49,7 +49,12 @@ export default function Landing() {
         setIsError(false);
       }, 2000);
     } else {
-      const { error } = await supabase.auth.signInWithOtp({ email });
+      const { error } = await supabase.auth.signInWithOtp({ 
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/userinput`,
+        },
+      });
       if (error) {
         setIsError(true);
         setShake(true);
