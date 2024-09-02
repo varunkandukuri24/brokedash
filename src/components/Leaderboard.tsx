@@ -50,14 +50,16 @@ export default function Component() {
   const [sortBy, setSortBy] = useState<keyof WalletWarrior>('rank')
   const [sortOrder, setSortOrder] = useState('asc')
   const [currentPage, setCurrentPage] = useState(0)
+  const [leaderboardType, setLeaderboardType] = useState('global')
 
-  const highlightedUserRank = 2 // This should be dynamically set based on the current user's rank
+  const highlightedUserRank = 1 // This should be dynamically set based on the current user's rank
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [leaderboardType])
 
   const fetchData = async () => {
+    // Modify this function to fetch either global or friends-only data based on leaderboardType
     const { data, error } = await supabase
       .from('users')
       .select('id, income_level, monthly_spend')
@@ -122,6 +124,30 @@ export default function Component() {
           <p className="text-xs sm:text-sm text-gray-600">Percentile Range: {userCategory.range}</p>
         </div>
       )}
+      <div className="bg-orange-200 p-2 border-b-4 border-black">
+        <div className="bg-white rounded-full p-1 flex border-2 border-black">
+          <button
+            className={`flex-1 py-2 px-2 rounded-full text-xs sm:text-sm transition-colors duration-300 ${
+              leaderboardType === 'global' 
+                ? 'bg-black text-orange-200' 
+                : 'text-black hover:bg-orange-200'
+            }`}
+            onClick={() => setLeaderboardType('global')}
+          >
+            Global
+          </button>
+          <button
+            className={`flex-1 py-2 px-2 rounded-full text-xs sm:text-sm transition-colors duration-300 ${
+              leaderboardType === 'friends' 
+                ? 'bg-black text-orange-200' 
+                : 'text-black hover:bg-orange-200'
+            }`}
+            onClick={() => setLeaderboardType('friends')}
+          >
+            Friends
+          </button>
+        </div>
+      </div>
       <div className="flex-grow overflow-auto flex flex-col">
         <table className="w-full text-xs table-fixed flex-grow">
           <colgroup>

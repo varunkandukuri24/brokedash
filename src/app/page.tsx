@@ -4,6 +4,9 @@ import React from 'react';
 import { Input } from "@/components/ui/input"
 import FloatingEmoji from '../components/FloatingEmoji';
 import { supabase } from '@/lib/supabase'; // Import Supabase client
+import { useRouter } from 'next/navigation';
+import { useUser } from '@/contexts/UserContext';
+import { Button } from "@/components/ui/button";
 
 const scrollItems = [
   { emoji: '🍕', amount: '$150', status: 'Takeout tycoon in training' },
@@ -19,6 +22,8 @@ const scrollItems = [
 ];
 
 export default function Landing() {
+  const router = useRouter();
+  const { user } = useUser();
   const [selectedEmojis, setSelectedEmojis] = React.useState<string[]>([]);
   const [email, setEmail] = React.useState('');
   const [isError, setIsError] = React.useState(false);
@@ -29,13 +34,13 @@ export default function Landing() {
     setSelectedEmojis(shuffled.slice(0, 2).map(item => item.emoji));
   }, []);
 
-  const validateEmail = (email: string) => {
-    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return re.test(String(email).toLowerCase());
+  const handleCompareNow = () => {
+    router.push('/userinput');
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,7 +59,6 @@ export default function Landing() {
         options: {
           emailRedirectTo: process.env.NEXT_PUBLIC_REDIRECT_URL,
         },
-        //blahhh
       });
       if (error) {
         setIsError(true);
@@ -66,9 +70,17 @@ export default function Landing() {
         }, 2000);
       } else {
         console.log('Magic link sent to:', email);
-        // Optionally, show a success message to the user
       }
     }
+  };
+
+  const validateEmail = (email: string) => {
+    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return re.test(String(email).toLowerCase());
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
   };
 
   return (
@@ -83,40 +95,60 @@ export default function Landing() {
         <p className="text-base md:text-2xl mb-8 text-gray-800">
           find your place in the food delivery chain 🦁
         </p>
-        <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
-          <div className="w-full max-w-md">
-            <div className={`relative ${shake ? 'animate-shake' : ''}`}>
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={handleInputChange}
-                className={`w-full bg-white rounded-xl p-6 border-4 ${
-                  isError ? 'border-red-500' : 'border-black'
-                } text-center focus:outline-none focus:ring-0 ${
-                  isError ? 'focus:border-red-500' : 'focus:border-black'
-                }`}
-                required
-                aria-invalid={isError}
-                aria-describedby={isError ? "email-error" : undefined}
-              />
-              <div 
-                className={`absolute inset-0 rounded-xl pointer-events-none transition-all duration-300 ${
-                  isError ? 'focus-within:shadow-[0_0_0_2px_#ef4444]' : 'focus-within:shadow-[0_0_0_2px_black]'
-                }`} 
-                aria-hidden="true" 
-              />
+        {user ? (
+          <>
+            <p className="text-xl mb-8 text-black">👋 Hi, {user.email}</p>
+            <div className="flex flex-col items-center gap-4">
+            <Button 
+              onClick={handleCompareNow}
+              className="bg-black border-2 border-black text-white text-xl p-6 rounded-full transition hover:scale-[1.02] hover:text-black hover:bg-white duration-300 shadow-[0px_4px_10px_rgba(0,0,0,0.5)]"
+              >
+              Compare Now
+            </Button>
+            <a 
+              onClick={handleSignOut}
+              className="font-bold text-black underline cursor-pointer hover:text-gray-700"
+              >
+              Sign Out
+            </a>
+              </div>
+          </>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
+            <div className="w-full max-w-md">
+              <div className={`relative ${shake ? 'animate-shake' : ''}`}>
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={handleInputChange}
+                  className={`w-full bg-white rounded-xl p-6 border-4 ${
+                    isError ? 'border-red-500' : 'border-black'
+                  } text-center focus:outline-none focus:ring-0 ${
+                    isError ? 'focus:border-red-500' : 'focus:border-black'
+                  }`}
+                  required
+                  aria-invalid={isError}
+                  aria-describedby={isError ? "email-error" : undefined}
+                />
+                <div 
+                  className={`absolute inset-0 rounded-xl pointer-events-none transition-all duration-300 ${
+                    isError ? 'focus-within:shadow-[0_0_0_2px_#ef4444]' : 'focus-within:shadow-[0_0_0_2px_black]'
+                  }`} 
+                  aria-hidden="true" 
+                />
+              </div>
+              {isError && (
+                <p id="email-error" className="mt-2 text-red-500 text-sm">
+                  Please enter a valid email address
+                </p>
+              )}
             </div>
-            {isError && (
-              <p id="email-error" className="mt-2 text-red-500 text-sm">
-                Please enter a valid email address
-              </p>
-            )}
-          </div>
-          <button type="submit" className="bg-black border-2 border-black text-white text-xl py-3 px-6 rounded-full transition hover:scale-[1.02] hover:text-black hover:bg-white duration-300">
-            Compare Now
-          </button>
-        </form>
+            <button type="submit" className="bg-black border-2 border-black text-white text-xl py-3 px-6 rounded-full transition hover:scale-[1.02] hover:text-black hover:bg-white duration-300 shadow-[0px_4px_10px_rgba(0,0,0,0.5)]">
+              Compare Now
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
