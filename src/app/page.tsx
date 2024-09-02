@@ -27,19 +27,21 @@ const Landing: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col gap-2 justify-center items-center text-center p-4 relative overflow-hidden pt-16 bg-lightAccent">
+    <div className="min-h-screen flex flex-col gap-2 justify-center md:justify-center items-center text-center p-4 relative overflow-hidden bg-lightAccent">
       {selectedEmojis.map((emoji, index) => (
         <FloatingEmoji key={index} emoji={emoji} size={40} />
       ))}
-      <h1 className="text-4xl md:text-7xl font-bold mb-4 text-black">
-        see who spends 💸 <br/> more on fo🥘d delivery than you
-      </h1>
-      <p className="text-base md:text-2xl mb-8 text-gray-800">
-        find your place in the food delivery chain 🦁
-      </p>
-      <Link href="/userinput" className="bg-black border-2 border-black text-white text-xl py-3 px-6 rounded-full transition hover:scale-[1.02] hover:text-black hover:bg-white duration-300 mb-12">
-        Compare Now
-      </Link>
+      <div className="mt-[-4rem] md:mt-0">
+        <h1 className="text-4xl md:text-7xl font-bold mb-4 text-black">
+          see who spends 💸 <br/> more on fo🥘d delivery than you
+        </h1>
+        <p className="text-base md:text-2xl mb-8 text-gray-800">
+          find your place in the food delivery chain 🦁
+        </p>
+        <Link href="/userinput" className="bg-black border-2 border-black text-white text-xl py-3 px-6 rounded-full transition hover:scale-[1.02] hover:text-black hover:bg-white duration-300 inline-block">
+          Compare Now
+        </Link>
+      </div>
     </div>
   );
 };
