@@ -53,7 +53,7 @@ const InviteFriends: React.FC = () => {
               Copy Invite Link
             </Button>
             <p className="text-sm text-center mt-4 text-black">
-              We'll send you your brokestats at the end of every month
+              We will send you your brokestats at the end of every month
             </p>
             <Button
               onClick={() => setIsModalOpen(false)}
