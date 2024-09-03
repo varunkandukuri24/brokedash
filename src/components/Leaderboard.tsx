@@ -200,49 +200,57 @@ export default function Component() {
         </div>
       </div>
       <div className="flex-grow overflow-auto flex flex-col">
-        {walletWarriorData.length > 0 ? (
-          <table className="w-full text-xs table-fixed flex-grow">
-            <colgroup>
-              <col className="w-[10%]" />
-              <col className="w-[30%]" />
-              <col className="w-[20%]" />
-              <col className="w-[20%]" />
-              <col className="w-[20%]" />
-            </colgroup>
-            <thead className="bg-white text-black border-b-4 border-black">
-              <tr>
-                <th className="px-1 py-2 text-center">
-                  <Button variant="ghost" size="sm" onClick={() => handleSort('rank')} className="font-bold hover:text-orange-900 p-0 text-[10px] sm:text-xs">
-                    <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
-                    Rank
-                  </Button>
-                </th>
-                <th className="px-1 py-2 text-center text-[10px] sm:text-xs">
-                  Warrior
-                </th>
-                <th className="px-1 py-2 text-center">
-                  <Button variant="ghost" size="sm" onClick={() => handleSort('daysTillBroke')} className="font-bold  hover:text-orange-900 p-0 text-[10px] sm:text-xs">
-                    <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
-                    <span className="hidden sm:inline">Days Till Broke</span>
-                    <span className="sm:hidden">Days To Broke</span>
-                  </Button>
-                </th>
-                <th className="px-1 py-2 text-center">
-                  <Button variant="ghost" size="sm" onClick={() => handleSort('income_level')} className="font-bold  hover:text-orange-900 p-0 text-[10px] sm:text-xs">
-                    <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
-                    Income
-                  </Button>
-                </th>
-                <th className="px-1 py-2 text-center">
-                  <Button variant="ghost" size="sm" onClick={() => handleSort('monthly_spend')} className="font-bold  hover:text-orange-900 p-0 text-[10px] sm:text-xs">
-                    <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
-                    Spend
-                  </Button>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="flex-grow">
-              {currentPageData.map((warrior) => (
+        <table className="w-full text-xs table-fixed flex-grow">
+          <colgroup>
+            <col className="w-[10%]" />
+            <col className="w-[30%]" />
+            {leaderboardType === 'global' && (
+              <>
+                <col className="w-[20%]" />
+                <col className="w-[20%]" />
+                <col className="w-[20%]" />
+              </>
+            )}
+          </colgroup>
+          <thead className="bg-white text-black border-b-4 border-black">
+            <tr>
+              <th className="px-1 py-2 text-center">
+                <Button variant="ghost" size="sm" onClick={() => handleSort('rank')} className="font-bold hover:text-orange-900 p-0 text-[10px] sm:text-xs">
+                  <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
+                  Rank
+                </Button>
+              </th>
+              <th className="px-1 py-2 text-center text-[10px] sm:text-xs">
+                Warrior
+              </th>
+              {leaderboardType === 'global' && (
+                <>
+                  <th className="px-1 py-2 text-center">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('daysTillBroke')} className="font-bold  hover:text-orange-900 p-0 text-[10px] sm:text-xs">
+                      <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
+                      <span className="hidden sm:inline">Days Till Broke</span>
+                      <span className="sm:hidden">Days To Broke</span>
+                    </Button>
+                  </th>
+                  <th className="px-1 py-2 text-center">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('income_level')} className="font-bold  hover:text-orange-900 p-0 text-[10px] sm:text-xs">
+                      <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
+                      Income
+                    </Button>
+                  </th>
+                  <th className="px-1 py-2 text-center">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('monthly_spend')} className="font-bold  hover:text-orange-900 p-0 text-[10px] sm:text-xs">
+                      <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
+                      Spend
+                    </Button>
+                  </th>
+                </>
+              )}
+            </tr>
+          </thead>
+          <tbody className="flex-grow">
+            {walletWarriorData.length > 0 ? (
+              currentPageData.map((warrior) => (
                 <tr 
                   key={warrior.id} 
                   className={`
@@ -260,18 +268,24 @@ export default function Component() {
                       <span className="truncate text-[10px] sm:text-xs">{warrior.category}</span>
                     </div>
                   </td>
-                  <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{warrior.daysTillBroke}</td>
-                  <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{warrior.income_level}</td>
-                  <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">${warrior.monthly_spend.toLocaleString()}</td>
+                  {leaderboardType === 'global' && (
+                    <>
+                      <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{warrior.daysTillBroke}</td>
+                      <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{warrior.income_level}</td>
+                      <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">${warrior.monthly_spend.toLocaleString()}</td>
+                    </>
+                  )}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <div className="flex-grow flex items-center justify-center text-lg font-bold text-gray-500">
-            {leaderboardType === 'friends' ? "Invite friends to view" : "No data available"}
-          </div>
-        )}
+              ))
+            ) : (
+              <tr>
+                <td colSpan={leaderboardType === 'global' ? 5 : 2} className="text-center py-4 text-lg font-bold text-gray-500">
+                  {leaderboardType === 'friends' ? "Invite friends to view" : "No data available"}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
       <div className="p-2 flex justify-between items-center text-xs bg-orange-200 ">
         <div className="flex gap-1">
