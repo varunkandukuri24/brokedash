@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, ArrowUpDown, ChevronsLeft, ChevronsRight } from 'lucide-react'
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
+import { useUser } from '@/contexts/UserContext'
 
 const categories = [
   { name: "Broke Beginner", range: "0-9th", emoji: "😓" },
@@ -18,10 +19,6 @@ const categories = [
 
 const incomeLevels = ["<100k", "100k-150k", "150k-250k", "250k+"]
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
 
 const calculateDaysTillBroke = (incomeLevel: string, monthlySpend: number) => {
   const annualIncome = {
@@ -46,22 +43,47 @@ type WalletWarrior = {
 }
 
 export default function Component() {
+  const { user } = useUser()
   const [walletWarriorData, setWalletWarriorData] = useState<WalletWarrior[]>([])
   const [sortBy, setSortBy] = useState<keyof WalletWarrior>('rank')
   const [sortOrder, setSortOrder] = useState('asc')
   const [currentPage, setCurrentPage] = useState(0)
+  const [leaderboardType, setLeaderboardType] = useState('global')
 
-  const highlightedUserRank = 2 // This should be dynamically set based on the current user's rank
+  const highlightedUserRank = 1 // This should be dynamically set based on the current user's rank
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    if (user) {
+      fetchData()
+    }
+  }, [leaderboardType, user])
 
   const fetchData = async () => {
-    const { data, error } = await supabase
-      .from('users')
-      .select('id, income_level, monthly_spend')
-      .order('monthly_spend', { ascending: false })
+    if (!user) return
+
+    let query = supabase.from('users').select('id, income_level, monthly_spend')
+
+    if (leaderboardType === 'friends') {
+      const { data: friendships, error: friendshipsError } = await supabase
+        .from('friendships')
+        .select('friend_id')
+        .eq('user_id', user.id)
+
+      if (friendshipsError) {
+        console.error('Error fetching friendships:', friendshipsError)
+        return
+      }
+
+      const friendIds = friendships.map(f => f.friend_id)
+      if (friendIds.length === 0) {
+        setWalletWarriorData([])
+        return
+      }
+
+      query = query.in('id', friendIds)
+    }
+
+    const { data, error } = await query.order('monthly_spend', { ascending: false })
 
     if (error) {
       console.error('Error fetching data:', error)
@@ -122,73 +144,103 @@ export default function Component() {
           <p className="text-xs sm:text-sm text-gray-600">Percentile Range: {userCategory.range}</p>
         </div>
       )}
+      <div className="bg-orange-200 p-2 border-b-4 border-black">
+        <div className="bg-white rounded-full p-1 flex border-2 border-black">
+          <button
+            className={`flex-1 py-2 px-2 rounded-full text-xs sm:text-sm transition-colors duration-300 ${
+              leaderboardType === 'global' 
+                ? 'bg-black text-orange-200' 
+                : 'text-black hover:bg-orange-200'
+            }`}
+            onClick={() => setLeaderboardType('global')}
+          >
+            Global
+          </button>
+          <button
+            className={`flex-1 py-2 px-2 rounded-full text-xs sm:text-sm transition-colors duration-300 ${
+              leaderboardType === 'friends' 
+                ? 'bg-black text-orange-200' 
+                : 'text-black hover:bg-orange-200'
+            }`}
+            onClick={() => setLeaderboardType('friends')}
+          >
+            Friends
+          </button>
+        </div>
+      </div>
       <div className="flex-grow overflow-auto flex flex-col">
-        <table className="w-full text-xs table-fixed flex-grow">
-          <colgroup>
-            <col className="w-[10%]" />
-            <col className="w-[30%]" />
-            <col className="w-[20%]" />
-            <col className="w-[20%]" />
-            <col className="w-[20%]" />
-          </colgroup>
-          <thead className="bg-white text-black border-b-4 border-black">
-            <tr>
-              <th className="px-1 py-2 text-center">
-                <Button variant="ghost" size="sm" onClick={() => handleSort('rank')} className="font-bold hover:text-orange-900 p-0 text-[10px] sm:text-xs">
-                  <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
-                  Rank
-                </Button>
-              </th>
-              <th className="px-1 py-2 text-center text-[10px] sm:text-xs">
-                Warrior
-              </th>
-              <th className="px-1 py-2 text-center">
-                <Button variant="ghost" size="sm" onClick={() => handleSort('daysTillBroke')} className="font-bold  hover:text-orange-900 p-0 text-[10px] sm:text-xs">
-                  <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
-                  <span className="hidden sm:inline">Days Till Broke</span>
-                  <span className="sm:hidden">Days To Broke</span>
-                </Button>
-              </th>
-              <th className="px-1 py-2 text-center">
-                <Button variant="ghost" size="sm" onClick={() => handleSort('income_level')} className="font-bold  hover:text-orange-900 p-0 text-[10px] sm:text-xs">
-                  <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
-                  Income
-                </Button>
-              </th>
-              <th className="px-1 py-2 text-center">
-                <Button variant="ghost" size="sm" onClick={() => handleSort('monthly_spend')} className="font-bold  hover:text-orange-900 p-0 text-[10px] sm:text-xs">
-                  <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
-                  Spend
-                </Button>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="flex-grow">
-            {currentPageData.map((warrior) => (
-              <tr 
-                key={warrior.id} 
-                className={`
-                  ${warrior.rank === highlightedUserRank 
-                    ? 'bg-black text-white' 
-                    : 'hover:bg-orange-50 border-b-2 bg-blue-200 border-black'
-                  } 
-                  transition-all duration-200
-                `}
-              >
-                <td className="px-1 py-2 text-center font-medium truncate">{warrior.rank}</td>
-                <td className="px-1 py-2 text-center">
-                  <div className="flex items-center gap-1 justify-center">
-                    <span className="text-base">{warrior.emoji}</span>
-                    <span className="truncate text-[10px] sm:text-xs">{warrior.category}</span>
-                  </div>
-                </td>
-                <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{warrior.daysTillBroke}</td>
-                <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{warrior.income_level}</td>
-                <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">${warrior.monthly_spend.toLocaleString()}</td>
+        {walletWarriorData.length > 0 ? (
+          <table className="w-full text-xs table-fixed flex-grow">
+            <colgroup>
+              <col className="w-[10%]" />
+              <col className="w-[30%]" />
+              <col className="w-[20%]" />
+              <col className="w-[20%]" />
+              <col className="w-[20%]" />
+            </colgroup>
+            <thead className="bg-white text-black border-b-4 border-black">
+              <tr>
+                <th className="px-1 py-2 text-center">
+                  <Button variant="ghost" size="sm" onClick={() => handleSort('rank')} className="font-bold hover:text-orange-900 p-0 text-[10px] sm:text-xs">
+                    <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
+                    Rank
+                  </Button>
+                </th>
+                <th className="px-1 py-2 text-center text-[10px] sm:text-xs">
+                  Warrior
+                </th>
+                <th className="px-1 py-2 text-center">
+                  <Button variant="ghost" size="sm" onClick={() => handleSort('daysTillBroke')} className="font-bold  hover:text-orange-900 p-0 text-[10px] sm:text-xs">
+                    <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
+                    <span className="hidden sm:inline">Days Till Broke</span>
+                    <span className="sm:hidden">Days To Broke</span>
+                  </Button>
+                </th>
+                <th className="px-1 py-2 text-center">
+                  <Button variant="ghost" size="sm" onClick={() => handleSort('income_level')} className="font-bold  hover:text-orange-900 p-0 text-[10px] sm:text-xs">
+                    <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
+                    Income
+                  </Button>
+                </th>
+                <th className="px-1 py-2 text-center">
+                  <Button variant="ghost" size="sm" onClick={() => handleSort('monthly_spend')} className="font-bold  hover:text-orange-900 p-0 text-[10px] sm:text-xs">
+                    <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
+                    Spend
+                  </Button>
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="flex-grow">
+              {currentPageData.map((warrior) => (
+                <tr 
+                  key={warrior.id} 
+                  className={`
+                    ${warrior.rank === highlightedUserRank 
+                      ? 'bg-black text-white' 
+                      : 'hover:bg-orange-50 border-b-2 bg-blue-200 border-black'
+                    } 
+                    transition-all duration-200
+                  `}
+                >
+                  <td className="px-1 py-2 text-center font-medium truncate">{warrior.rank}</td>
+                  <td className="px-1 py-2 text-center">
+                    <div className="flex items-center gap-1 justify-center">
+                      <span className="text-base">{warrior.emoji}</span>
+                      <span className="truncate text-[10px] sm:text-xs">{warrior.category}</span>
+                    </div>
+                  </td>
+                  <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{warrior.daysTillBroke}</td>
+                  <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{warrior.income_level}</td>
+                  <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">${warrior.monthly_spend.toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="flex-grow flex items-center justify-center text-lg font-bold text-gray-500">
+            {leaderboardType === 'friends' ? "Invite friends to view" : "No data available"}
+          </div>
+        )}
       </div>
       <div className="p-2 flex justify-between items-center text-xs bg-orange-200 ">
         <div className="flex gap-1">
