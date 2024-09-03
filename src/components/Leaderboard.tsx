@@ -42,6 +42,26 @@ type WalletWarrior = {
   emoji: string
 }
 
+const getIncomeValue = (incomeLevel: string): number => {
+  switch (incomeLevel) {
+    case '<100k': return 75000;
+    case '100k-150k': return 125000;
+    case '150k-250k': return 200000;
+    case '250k+': return 300000;
+    default: return 75000;
+  }
+}
+
+const calculateScore = (monthlySpend: number, incomeLevel: string): number => {
+  const income = getIncomeValue(incomeLevel);
+  const spendRatio = monthlySpend / (income / 12);
+  
+  // Apply extra weightage for lower income levels
+  const incomeMultiplier = 1 + (1 - income / 300000);
+  
+  return spendRatio * incomeMultiplier;
+}
+
 export default function Component() {
   const { user } = useUser()
   const [walletWarriorData, setWalletWarriorData] = useState<WalletWarrior[]>([])
@@ -49,8 +69,7 @@ export default function Component() {
   const [sortOrder, setSortOrder] = useState('asc')
   const [currentPage, setCurrentPage] = useState(0)
   const [leaderboardType, setLeaderboardType] = useState('global')
-
-  const highlightedUserRank = 1 // This should be dynamically set based on the current user's rank
+  const [currentUserRank, setCurrentUserRank] = useState<number | null>(null)
 
   useEffect(() => {
     if (user) {
@@ -83,21 +102,33 @@ export default function Component() {
       query = query.in('id', friendIds)
     }
 
-    const { data, error } = await query.order('monthly_spend', { ascending: false })
+    const { data, error } = await query
 
     if (error) {
       console.error('Error fetching data:', error)
       return
     }
 
-    const processedData: WalletWarrior[] = data.map((user, index) => {
+    const scoredData = data.map(user => ({
+      ...user,
+      score: calculateScore(user.monthly_spend, user.income_level)
+    }));
+
+    const sortedData = scoredData.sort((a, b) => b.score - a.score);
+
+    const processedData: WalletWarrior[] = sortedData.map((userData, index) => {
       const rank = index + 1
       const categoryIndex = Math.min(Math.floor((rank - 1) / 5), categories.length - 1)
       const category = categories[categoryIndex]
+      
+      if (userData.id === user.id) {
+        setCurrentUserRank(rank)
+      }
+
       return {
-        ...user,
+        ...userData,
         rank,
-        daysTillBroke: calculateDaysTillBroke(user.income_level, user.monthly_spend),
+        daysTillBroke: calculateDaysTillBroke(userData.income_level, userData.monthly_spend),
         category: category.name,
         emoji: category.emoji
       }
@@ -129,13 +160,13 @@ export default function Component() {
   const pageCount = Math.ceil(sortedData.length / pageSize)
   const currentPageData = sortedData.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
 
-  const highlightedUser = walletWarriorData.find(user => user.rank === highlightedUserRank)
-  const userCategory = categories[Math.floor((highlightedUserRank - 1) / 5)]
+  const currentUserData = walletWarriorData.find(warrior => warrior.id === user?.id)
+  const userCategory = currentUserRank ? categories[Math.min(Math.floor((currentUserRank - 1) / 5), categories.length - 1)] : null
 
   return (
     <div className="bg-lightAccent border-black border-4 rounded-lg shadow-2xl w-full mx-auto flex flex-col h-[calc(100vh-6rem)] overflow-hidden">
       <h2 className="text-lg font-bold text-center text-white bg-black">brokerank</h2>
-      {highlightedUser && (
+      {currentUserData && userCategory && (
         <div className="text-center p-2 border-b-4 border-black bg-orange-200">
           <p className="text-xl sm:text-2xl font-bold mb-1">
             <span className="mr-2">{userCategory.emoji}</span>
@@ -215,7 +246,7 @@ export default function Component() {
                 <tr 
                   key={warrior.id} 
                   className={`
-                    ${warrior.rank === highlightedUserRank 
+                    ${warrior.id === user?.id 
                       ? 'bg-black text-white' 
                       : 'hover:bg-orange-50 border-b-2 bg-blue-200 border-black'
                     } 
