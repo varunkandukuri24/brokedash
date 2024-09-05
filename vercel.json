@@ -1,6 +1,6 @@
 {
     "crons": [{
-      "path": "/api/update-brokedashers",
+      "path": "/api/update-brokerank",
       "schedule": "0 0 * * *"
     }]
   }

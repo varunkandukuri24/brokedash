@@ -38,7 +38,10 @@ const calculateScore = (monthlySpend: number, incomeLevel: string): number => {
   return spendRatio * incomeMultiplier;
 };
 
-export async function POST() {
+export const runtime = 'edge';
+
+export async function GET(request: Request) {
+
   try {
     const { data: users, error } = await supabase
       .from('users')
