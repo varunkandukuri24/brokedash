@@ -17,8 +17,6 @@ const categories = [
   { name: "Wealth Wizard", range: "90-99th", emoji: "🧙" }
 ]
 
-const incomeLevels = ["<100k", "100k-150k", "150k-250k", "250k+"]
-
 type Brokedasher = {
   id: string
   income_level: string

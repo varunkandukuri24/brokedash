@@ -41,13 +41,14 @@ const calculateScore = (monthlySpend: number, incomeLevel: string): number => {
 export const runtime = 'edge';
 
 export async function GET(request: Request) {
-
   try {
     const { data: users, error } = await supabase
       .from('users')
       .select('id, income_level, monthly_spend');
 
     if (error) throw error;
+
+    console.log('Fetched users:', users.length);
 
     const scoredData = users.map(user => ({
       ...user,
@@ -73,15 +74,24 @@ export async function GET(request: Request) {
       };
     });
 
-    const { error: upsertError } = await supabase
+    console.log('Prepared brokedashers:', brokedashers.length);
+
+    // Use upsert instead of insert
+    const { data: upsertedData, error: upsertError } = await supabase
       .from('brokerank')
-      .upsert(brokedashers);
+      .upsert(brokedashers, { onConflict: 'id' })
+      .select();
 
-    if (upsertError) throw upsertError;
+    if (upsertError) {
+      console.error('Upsert error:', upsertError);
+      throw upsertError;
+    }
 
-    return NextResponse.json({ message: 'Brokerank updated successfully' }, { status: 200 });
+    console.log('Upserted brokerank records:', upsertedData.length);
+
+    return NextResponse.json({ message: 'Brokerank updated successfully', upsertedCount: upsertedData.length }, { status: 200 });
   } catch (error) {
     console.error('Error updating brokerank:', error);
-    return NextResponse.json({ message: 'Error updating brokerank' }, { status: 500 });
+    return NextResponse.json({ message: 'Error updating brokerank', error: JSON.stringify(error) }, { status: 500 });
   }
 }
