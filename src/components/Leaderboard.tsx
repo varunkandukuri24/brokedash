@@ -19,53 +19,20 @@ const categories = [
 
 const incomeLevels = ["<100k", "100k-150k", "150k-250k", "250k+"]
 
-
-const calculateDaysTillBroke = (incomeLevel: string, monthlySpend: number) => {
-  const annualIncome = {
-    '<100k': 75000,
-    '100k-150k': 125000,
-    '150k-250k': 200000,
-    '250k+': 300000
-  }[incomeLevel] || 75000
-
-  const monthlySavings = (annualIncome / 12) - monthlySpend
-  return Math.max(0, Math.floor((annualIncome / 365) / (monthlySpend / 30)))
-}
-
-type WalletWarrior = {
+type Brokedasher = {
   id: string
   income_level: string
   monthly_spend: number
   rank: number
-  daysTillBroke: number
+  days_till_broke: number
   category: string
   emoji: string
 }
 
-const getIncomeValue = (incomeLevel: string): number => {
-  switch (incomeLevel) {
-    case '<100k': return 75000;
-    case '100k-150k': return 125000;
-    case '150k-250k': return 200000;
-    case '250k+': return 300000;
-    default: return 75000;
-  }
-}
-
-const calculateScore = (monthlySpend: number, incomeLevel: string): number => {
-  const income = getIncomeValue(incomeLevel);
-  const spendRatio = monthlySpend / (income / 12);
-  
-  // Apply extra weightage for lower income levels
-  const incomeMultiplier = 1 + (1 - income / 300000);
-  
-  return spendRatio * incomeMultiplier;
-}
-
 export default function Component() {
   const { user } = useUser()
-  const [walletWarriorData, setWalletWarriorData] = useState<WalletWarrior[]>([])
-  const [sortBy, setSortBy] = useState<keyof WalletWarrior>('rank')
+  const [brokedasherData, setBrokedasherData] = useState<Brokedasher[]>([])
+  const [sortBy, setSortBy] = useState<keyof Brokedasher>('rank')
   const [sortOrder, setSortOrder] = useState('asc')
   const [currentPage, setCurrentPage] = useState(0)
   const [leaderboardType, setLeaderboardType] = useState('global')
@@ -80,7 +47,7 @@ export default function Component() {
   const fetchData = async () => {
     if (!user) return
 
-    let query = supabase.from('users').select('id, income_level, monthly_spend')
+    let query = supabase.from('brokerank').select('*')
 
     if (leaderboardType === 'friends') {
       const { data: friendships, error: friendshipsError } = await supabase
@@ -95,7 +62,7 @@ export default function Component() {
 
       const friendIds = friendships.map(f => f.friend_id)
       if (friendIds.length === 0) {
-        setWalletWarriorData([])
+        setBrokedasherData([])
         return
       }
 
@@ -109,35 +76,14 @@ export default function Component() {
       return
     }
 
-    const scoredData = data.map(user => ({
-      ...user,
-      score: calculateScore(user.monthly_spend, user.income_level)
-    }));
-
-    const sortedData = scoredData.sort((a, b) => b.score - a.score);
-
-    const processedData: WalletWarrior[] = sortedData.map((userData, index) => {
-      const rank = index + 1
-      const categoryIndex = Math.min(Math.floor((rank - 1) / 5), categories.length - 1)
-      const category = categories[categoryIndex]
-      
-      if (userData.id === user.id) {
-        setCurrentUserRank(rank)
-      }
-
-      return {
-        ...userData,
-        rank,
-        daysTillBroke: calculateDaysTillBroke(userData.income_level, userData.monthly_spend),
-        category: category.name,
-        emoji: category.emoji
-      }
-    })
-
-    setWalletWarriorData(processedData)
+    setBrokedasherData(data)
+    const currentUser = data.find(dasher => dasher.id === user.id)
+    if (currentUser) {
+      setCurrentUserRank(currentUser.rank)
+    }
   }
 
-  const sortedData = [...walletWarriorData].sort((a, b) => {
+  const sortedData = [...brokedasherData].sort((a, b) => {
     if (sortBy === 'income_level') {
       const order = ['<100k', '100k-150k', '150k-250k', '250k+']
       return (order.indexOf(a[sortBy]) - order.indexOf(b[sortBy])) * (sortOrder === 'asc' ? 1 : -1)
@@ -147,7 +93,7 @@ export default function Component() {
     return 0
   })
 
-  const handleSort = (column: keyof WalletWarrior) => {
+  const handleSort = (column: keyof Brokedasher) => {
     if (column === sortBy) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
     } else {
@@ -160,7 +106,7 @@ export default function Component() {
   const pageCount = Math.ceil(sortedData.length / pageSize)
   const currentPageData = sortedData.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
 
-  const currentUserData = walletWarriorData.find(warrior => warrior.id === user?.id)
+  const currentUserData = brokedasherData.find(dasher => dasher.id === user?.id)
   const userCategory = currentUserRank ? categories[Math.min(Math.floor((currentUserRank - 1) / 5), categories.length - 1)] : null
 
   return (
@@ -226,7 +172,7 @@ export default function Component() {
               {leaderboardType === 'global' && (
                 <>
                   <th className="px-1 py-2 text-center">
-                    <Button variant="ghost" size="sm" onClick={() => handleSort('daysTillBroke')} className="font-bold  hover:text-orange-900 p-0 text-[10px] sm:text-xs">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('days_till_broke')} className="font-bold  hover:text-orange-900 p-0 text-[10px] sm:text-xs">
                       <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
                       <span className="hidden sm:inline">Days Till Broke</span>
                       <span className="sm:hidden">Days To Broke</span>
@@ -249,30 +195,30 @@ export default function Component() {
             </tr>
           </thead>
           <tbody className="flex-grow">
-            {walletWarriorData.length > 0 ? (
-              currentPageData.map((warrior) => (
+            {brokedasherData.length > 0 ? (
+              currentPageData.map((dasher) => (
                 <tr 
-                  key={warrior.id} 
+                  key={dasher.id} 
                   className={`
-                    ${warrior.id === user?.id 
+                    ${dasher.id === user?.id 
                       ? 'bg-black text-white' 
                       : 'hover:bg-orange-50 border-b-2 bg-blue-200 border-black'
                     } 
                     transition-all duration-200
                   `}
                 >
-                  <td className="px-1 py-2 text-center font-medium truncate">{warrior.rank}</td>
+                  <td className="px-1 py-2 text-center font-medium truncate">{dasher.rank}</td>
                   <td className="px-1 py-2 text-center">
                     <div className="flex items-center gap-1 justify-center">
-                      <span className="text-base">{warrior.emoji}</span>
-                      <span className="truncate text-[10px] sm:text-xs">{warrior.category}</span>
+                      <span className="text-base">{dasher.emoji}</span>
+                      <span className="truncate text-[10px] sm:text-xs">{dasher.category}</span>
                     </div>
                   </td>
                   {leaderboardType === 'global' && (
                     <>
-                      <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{warrior.daysTillBroke}</td>
-                      <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{warrior.income_level}</td>
-                      <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">${warrior.monthly_spend.toLocaleString()}</td>
+                      <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{dasher.days_till_broke}</td>
+                      <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{dasher.income_level}</td>
+                      <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">${dasher.monthly_spend.toLocaleString()}</td>
                     </>
                   )}
                 </tr>
