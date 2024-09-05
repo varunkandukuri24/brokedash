@@ -40,56 +40,61 @@ const calculateScore = (monthlySpend: number, incomeLevel: string): number => {
 
 export const runtime = 'edge';
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   try {
-    const { data: users, error } = await supabase
+    const { userId } = await request.json();
+
+    if (!userId) {
+      return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
+    }
+
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id, income_level, monthly_spend')
+      .eq('id', userId)
+      .single();
+
+    if (userError) throw userError;
+
+    const score = calculateScore(user.monthly_spend, user.income_level);
+
+    // Fetch all users to calculate rank
+    const { data: allUsers, error: allUsersError } = await supabase
       .from('users')
       .select('id, income_level, monthly_spend');
 
-    if (error) throw error;
+    if (allUsersError) throw allUsersError;
 
-    console.log('Fetched users:', users.length);
-
-    const scoredData = users.map(user => ({
-      ...user,
-      score: calculateScore(user.monthly_spend, user.income_level)
+    const scoredData = allUsers.map(u => ({
+      ...u,
+      score: calculateScore(u.monthly_spend, u.income_level)
     }));
 
     const sortedData = scoredData.sort((a, b) => b.score - a.score);
+    const rank = sortedData.findIndex(u => u.id === userId) + 1;
 
-    const brokedashers = sortedData.map((userData, index) => {
-      const rank = index + 1;
-      const categoryIndex = Math.min(Math.floor((rank - 1) / 10), categories.length - 1);
-      const category = categories[categoryIndex];
+    const categoryIndex = Math.min(Math.floor((rank - 1) / 10), categories.length - 1);
+    const category = categories[categoryIndex];
 
-      return {
-        id: userData.id,
-        rank,
-        days_till_broke: calculateDaysTillBroke(userData.income_level, userData.monthly_spend),
-        category: category.name,
-        emoji: category.emoji,
-        income_level: userData.income_level,
-        monthly_spend: userData.monthly_spend,
-        updated_at: new Date().toISOString()
-      };
-    });
+    const brokeranker = {
+      id: user.id,
+      rank,
+      days_till_broke: calculateDaysTillBroke(user.income_level, user.monthly_spend),
+      category: category.name,
+      emoji: category.emoji,
+      income_level: user.income_level,
+      monthly_spend: user.monthly_spend,
+      updated_at: new Date().toISOString()
+    };
 
-    console.log('Prepared brokedashers:', brokedashers.length);
-
-    // Use upsert instead of insert
     const { data: upsertedData, error: upsertError } = await supabase
       .from('brokerank')
-      .upsert(brokedashers, { onConflict: 'id' })
+      .upsert(brokeranker, { onConflict: 'id' })
       .select();
 
-    if (upsertError) {
-      console.error('Upsert error:', upsertError);
-      throw upsertError;
-    }
+    if (upsertError) throw upsertError;
 
-    console.log('Upserted brokerank records:', upsertedData.length);
-
-    return NextResponse.json({ message: 'Brokerank updated successfully', upsertedCount: upsertedData.length }, { status: 200 });
+    return NextResponse.json({ message: 'Brokerank updated successfully', data: upsertedData[0] }, { status: 200 });
   } catch (error) {
     console.error('Error updating brokerank:', error);
     return NextResponse.json({ message: 'Error updating brokerank', error: JSON.stringify(error) }, { status: 500 });

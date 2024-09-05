@@ -20,8 +20,8 @@ export default function Component() {
   const [userExists, setUserExists] = useState(false)
 
   const incomeOptions = [
-    { value: "<50k", label: "<$50k" },
-    { value: "50k-150k", label: "$50k-$150k" },
+    { value: "<100k", label: "<$100k" },
+    { value: "100k-150k", label: "$100k-$150k" },
     { value: "150k-250k", label: "$150k-$250k" },
     { value: "250k+", label: "$250k+" },
   ]
@@ -60,10 +60,24 @@ export default function Component() {
     return hash.digest('hex').substring(0, 10)
   }
 
-  const handleSubmit = async () => {
-    if (!user || !monthlySpend || !income) return
+  const updateBrokerank = async (userId: string) => {
+    const response = await fetch('/api/update-brokerank', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId }),
+    });
 
-    setIsLoading(true)
+    if (!response.ok) {
+      console.error('Failed to update brokerank');
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!user || !monthlySpend || !income) return;
+
+    setIsLoading(true);
 
     if (userExists) {
       // Update existing user data
@@ -73,17 +87,16 @@ export default function Component() {
           income_level: income,
           monthly_spend: parseFloat(monthlySpend),
         })
-        .eq('id', user.id)
-
-      setIsLoading(false)
+        .eq('id', user.id);
 
       if (error) {
-        console.error('Error updating user data:', error)
-        return
+        console.error('Error updating user data:', error);
+        setIsLoading(false);
+        return;
       }
     } else {
       // Insert new user data
-      const referralCode = generateReferralCode(uuidv4(), user.email!)
+      const referralCode = generateReferralCode(uuidv4(), user.email!);
 
       const { error } = await supabase
         .from('users')
@@ -94,17 +107,20 @@ export default function Component() {
           monthly_spend: parseFloat(monthlySpend),
           referral_code: referralCode,
           is_seed_user: false
-        })
-
-      setIsLoading(false)
+        });
 
       if (error) {
-        console.error('Error inserting user data:', error)
-        return
+        console.error('Error inserting user data:', error);
+        setIsLoading(false);
+        return;
       }
     }
 
-    router.push('/brokestats')
+    // Update brokerank after user data is inserted/updated
+    await updateBrokerank(user.id);
+
+    setIsLoading(false);
+    router.push('/brokestats');
   }
 
   return (
