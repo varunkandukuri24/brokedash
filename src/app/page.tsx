@@ -84,7 +84,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col gap-2 justify-center md:justify-center items-center text-center relative overflow-hidden bg-lightAccent">
+    <div className="no-scroll min-h-screen flex flex-col gap-2 justify-center md:justify-center items-center text-center relative overflow-hidden bg-lightAccent">
       {selectedEmojis.map((emoji, index) => (
         <FloatingEmoji key={index} emoji={emoji} size={40} />
       ))}

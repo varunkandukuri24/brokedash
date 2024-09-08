@@ -125,7 +125,7 @@ export default function Component() {
 
   return (
     <ProtectedRoute>
-      <div className="bg-lightAccent min-h-screen flex items-center justify-center p-4">
+      <div className="no-scroll bg-lightAccent min-h-screen flex items-center justify-center p-4">
         <div className="bg-orange-200 border-black border-4 rounded-lg shadow-2xl w-full max-w-md mx-auto flex flex-col">
           <h2 className="text-lg font-bold text-center text-white bg-black p-2">Enter your monthly spend</h2>
           <div className="flex flex-col p-4">
