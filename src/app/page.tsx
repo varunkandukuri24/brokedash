@@ -84,11 +84,11 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col gap-2 justify-center md:justify-center items-center text-center p-4 relative overflow-hidden bg-lightAccent">
+    <div className="min-h-screen flex flex-col gap-2 justify-center md:justify-center items-center text-center relative overflow-hidden bg-lightAccent">
       {selectedEmojis.map((emoji, index) => (
         <FloatingEmoji key={index} emoji={emoji} size={40} />
       ))}
-      <div className="mt-[-4rem] md:mt-0">
+      <div className="mt-[-10rem] md:mt-0">
         <h1 className="text-4xl md:text-7xl font-bold mb-4 text-black">
           see who spends 💸 <br/> more on fo🥘d delivery than you
         </h1>
@@ -107,7 +107,7 @@ export default function Landing() {
             </Button>
             <a 
               onClick={handleSignOut}
-              className="font-bold text-black underline cursor-pointer hover:text-gray-700"
+              className="font-bold text-black underline"
               >
               Sign Out
             </a>
