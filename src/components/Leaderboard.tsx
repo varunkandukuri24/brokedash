@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, ArrowUpDown, ChevronsLeft, ChevronsRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ArrowUpDown, ChevronsLeft, ChevronsRight, Share2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUser } from '@/contexts/UserContext'
 
@@ -35,10 +35,12 @@ export default function Component() {
   const [currentPage, setCurrentPage] = useState(0)
   const [leaderboardType, setLeaderboardType] = useState('global')
   const [currentUserRank, setCurrentUserRank] = useState<number | null>(null)
+  const [referralCode, setReferralCode] = useState<string | null>(null)
 
   useEffect(() => {
     if (user) {
       fetchData()
+      fetchReferralCode()
     }
   }, [leaderboardType, user])
 
@@ -78,6 +80,44 @@ export default function Component() {
     const currentUser = data.find(dasher => dasher.id === user.id)
     if (currentUser) {
       setCurrentUserRank(currentUser.rank)
+    }
+  }
+
+  const fetchReferralCode = async () => {
+    if (!user) return
+
+    const { data, error } = await supabase
+      .from('users')
+      .select('referral_code')
+      .eq('id', user.id)
+      .single()
+
+    if (error) {
+      console.error('Error fetching referral code:', error)
+      return
+    }
+
+    setReferralCode(data.referral_code)
+  }
+
+  const handleShare = async () => {
+    if (!referralCode) return
+
+    const shareData = {
+      title: 'Join me on Brokedash!',
+      text: 'Check out this awesome app to track your finances!',
+      url: `https://yourdomain.com/signup?ref=${referralCode}`
+    }
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData)
+      } catch (err) {
+        console.error('Error sharing:', err)
+      }
+    } else {
+      // Fallback for browsers that don't support Web Share API
+      alert(`Use this link to sign up: ${shareData.url}`)
     }
   }
 
@@ -224,7 +264,20 @@ export default function Component() {
             ) : (
               <tr>
                 <td colSpan={leaderboardType === 'global' ? 5 : 2} className="text-center py-4 text-lg font-bold text-gray-500">
-                  {leaderboardType === 'friends' ? "Invite friends to view" : "No data available"}
+                  {leaderboardType === 'friends' ? (
+                    <div className="flex flex-col items-center">
+                      <p>Invite friends to view</p>
+                      <Button
+                        onClick={handleShare}
+                        className="mt-2 bg-orange-500 hover:bg-orange-600 text-white"
+                      >
+                        <Share2 className="mr-2 h-4 w-4" />
+                        Invite Friends
+                      </Button>
+                    </div>
+                  ) : (
+                    "No data available"
+                  )}
                 </td>
               </tr>
             )}
