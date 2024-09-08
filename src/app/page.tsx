@@ -88,7 +88,7 @@ export default function Landing() {
       {selectedEmojis.map((emoji, index) => (
         <FloatingEmoji key={index} emoji={emoji} size={40} />
       ))}
-      <div className="mt-[-10rem] md:mt-0">
+      <div className="mt-[-4rem] md:mt-0">
         <h1 className="text-4xl md:text-7xl font-bold mb-4 text-black">
           see who spends 💸 <br/> more on fo🥘d delivery than you
         </h1>
