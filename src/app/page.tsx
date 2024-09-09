@@ -119,7 +119,7 @@ export default function Landing() {
           <div className="flex flex-col items-center gap-4">
             <p className="text-xl mb-4 text-black">Check your email 📧</p>
             <p className="text-base mb-8 text-gray-800">
-              We've sent you a magic link to sign in. Please check your inbox and click the link to continue.
+              We sent you an email for verification. Please check your inbox and click the link to continue.
             </p>
           </div>
         ) : (
