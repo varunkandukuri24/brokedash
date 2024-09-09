@@ -28,6 +28,7 @@ export default function Landing() {
   const [email, setEmail] = React.useState('');
   const [isError, setIsError] = React.useState(false);
   const [shake, setShake] = React.useState(false);
+  const [emailSent, setEmailSent] = React.useState(false);
 
   React.useEffect(() => {
     const shuffled = [...scrollItems].sort(() => 0.5 - Math.random());
@@ -70,6 +71,7 @@ export default function Landing() {
         }, 2000);
       } else {
         console.log('Magic link sent to:', email);
+        setEmailSent(true);
       }
     }
   };
@@ -113,6 +115,13 @@ export default function Landing() {
             </a>
               </div>
           </>
+        ) : emailSent ? (
+          <div className="flex flex-col items-center gap-4">
+            <p className="text-xl mb-4 text-black">Check your email 📧</p>
+            <p className="text-base mb-8 text-gray-800">
+              We've sent you a magic link to sign in. Please check your inbox and click the link to continue.
+            </p>
+          </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
             <div className="w-full max-w-md">
