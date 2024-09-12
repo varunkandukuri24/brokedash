@@ -58,10 +58,14 @@ function LandingContent() {
         setIsError(false);
       }, 2000);
     } else {
+      const redirectUrl = process.env.NODE_ENV === 'production'
+        ? process.env.NEXT_PUBLIC_REDIRECT_URL_PROD
+        : process.env.NEXT_PUBLIC_REDIRECT_URL_DEV;
+
       const { error } = await supabase.auth.signInWithOtp({ 
         email,
         options: {
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_REDIRECT_URL}${referralCode ? `?ref=${referralCode}` : ''}`,
+          emailRedirectTo: `${redirectUrl}${referralCode ? `?ref=${referralCode}` : ''}`,
         },
       });
       if (error) {
