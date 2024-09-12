@@ -104,9 +104,9 @@ export default function Component() {
     if (!referralCode) return
 
     const shareData = {
-      title: 'Join me on brokedash!',
-      text: 'Check out this awesome app to track your finances!',
-      url: `https://yourdomain.com/signup?ref=${referralCode}`
+      title: 'Join me on brokedash',
+      text: 'Check out this app to compare your food spending anonymously!',
+      url: `https://brokedash.com/?ref=${referralCode}`
     }
 
     if (navigator.share) {

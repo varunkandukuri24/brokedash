@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'; // Import Supabase client
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { Button } from "@/components/ui/button";
+import { useSearchParams } from 'next/navigation';
 
 const scrollItems = [
   { emoji: '🍕', amount: '$150', status: 'Takeout tycoon in training' },
@@ -29,6 +30,8 @@ export default function Landing() {
   const [isError, setIsError] = React.useState(false);
   const [shake, setShake] = React.useState(false);
   const [emailSent, setEmailSent] = React.useState(false);
+  const searchParams = useSearchParams();
+  const referralCode = searchParams.get('ref');
 
   React.useEffect(() => {
     const shuffled = [...scrollItems].sort(() => 0.5 - Math.random());
@@ -58,7 +61,7 @@ export default function Landing() {
       const { error } = await supabase.auth.signInWithOtp({ 
         email,
         options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_REDIRECT_URL,
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_REDIRECT_URL}${referralCode ? `?ref=${referralCode}` : ''}`,
         },
       });
       if (error) {

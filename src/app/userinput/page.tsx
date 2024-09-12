@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { useUser } from '@/contexts/UserContext'
 import { v4 as uuidv4 } from 'uuid'
 import crypto from 'crypto'
+import { useSearchParams } from 'next/navigation'
 
 export default function Component() {
   const router = useRouter()
@@ -18,6 +19,8 @@ export default function Component() {
   const [isLoading, setIsLoading] = useState(false)
   const [isEditable, setIsEditable] = useState(true)
   const [userExists, setUserExists] = useState(false)
+  const searchParams = useSearchParams();
+  const referralCode = searchParams.get('ref');
 
   const incomeOptions = [
     { value: "<100k", label: "<$100k" },
@@ -79,49 +82,68 @@ export default function Component() {
 
     setIsLoading(true);
 
-    if (userExists) {
-      // Update existing user data
-      const { error } = await supabase
-        .from('users')
-        .update({
-          income_level: income,
-          monthly_spend: parseFloat(monthlySpend),
-        })
-        .eq('id', user.id);
+    try {
+      if (userExists) {
+        // Update existing user data
+        const { error } = await supabase
+          .from('users')
+          .update({
+            income_level: income,
+            monthly_spend: parseFloat(monthlySpend),
+          })
+          .eq('id', user.id);
 
-      if (error) {
-        console.error('Error updating user data:', error);
-        setIsLoading(false);
-        return;
+        if (error) throw error;
+      } else {
+        // Insert new user data
+        const newReferralCode = generateReferralCode(uuidv4(), user.email!);
+
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email,
+            income_level: income,
+            monthly_spend: parseFloat(monthlySpend),
+            referral_code: newReferralCode,
+            referred_by: referralCode ? await getReferrerId(referralCode) : null,
+            is_seed_user: false
+          });
+
+        if (insertError) throw insertError;
+
+        // Create friendships if there's a referrer
+        if (referralCode) {
+          const referrerId = await getReferrerId(referralCode);
+          if (referrerId) {
+            await supabase.from('friendships').insert([
+              { user_id: referrerId, friend_id: user.id, is_referral: true },
+              { user_id: user.id, friend_id: referrerId, is_referral: true },
+            ]);
+          }
+        }
       }
-    } else {
-      // Insert new user data
-      const referralCode = generateReferralCode(uuidv4(), user.email!);
 
-      const { error } = await supabase
-        .from('users')
-        .insert({
-          id: user.id,
-          email: user.email,
-          income_level: income,
-          monthly_spend: parseFloat(monthlySpend),
-          referral_code: referralCode,
-          is_seed_user: false
-        });
+      // Update brokerank after user data is inserted/updated
+      await updateBrokerank(user.id);
 
-      if (error) {
-        console.error('Error inserting user data:', error);
-        setIsLoading(false);
-        return;
-      }
+      setIsLoading(false);
+      router.push('/brokestats');
+    } catch (error) {
+      console.error('Error updating user data:', error);
+      setIsLoading(false);
     }
+  };
 
-    // Update brokerank after user data is inserted/updated
-    await updateBrokerank(user.id);
-
-    setIsLoading(false);
-    router.push('/brokestats');
-  }
+  // Add this helper function
+  const getReferrerId = async (code: string) => {
+    const { data: referrer } = await supabase
+      .from('users')
+      .select('id')
+      .eq('referral_code', code)
+      .single();
+    return referrer ? referrer.id : null;
+  };
 
   return (
     <ProtectedRoute>
