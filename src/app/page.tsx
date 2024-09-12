@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Input } from "@/components/ui/input"
 import FloatingEmoji from '../components/FloatingEmoji';
 import { supabase } from '@/lib/supabase'; // Import Supabase client
@@ -22,7 +22,7 @@ const scrollItems = [
   { emoji: '🍝', amount: '$70', status: 'Pasta patron' },
 ];
 
-export default function Landing() {
+function LandingContent() {
   const router = useRouter();
   const { user } = useUser();
   const [selectedEmojis, setSelectedEmojis] = React.useState<string[]>([]);
@@ -163,5 +163,13 @@ export default function Landing() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function Landing() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LandingContent />
+    </Suspense>
   );
 }

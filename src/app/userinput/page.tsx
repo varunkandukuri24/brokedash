@@ -1,5 +1,6 @@
 'use client'
 
+import React, { Suspense } from 'react'
 import { useState, useEffect } from 'react'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -11,7 +12,7 @@ import { v4 as uuidv4 } from 'uuid'
 import crypto from 'crypto'
 import { useSearchParams } from 'next/navigation'
 
-export default function Component() {
+function UserInputContent() {
   const router = useRouter()
   const { user } = useUser()
   const [monthlySpend, setMonthlySpend] = useState('')
@@ -203,5 +204,13 @@ export default function Component() {
         </div>
       </div>
     </ProtectedRoute>
+  )
+}
+
+export default function Component() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <UserInputContent />
+    </Suspense>
   )
 }
