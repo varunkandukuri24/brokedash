@@ -1,12 +1,13 @@
 'use client'
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Input } from "@/components/ui/input"
 import FloatingEmoji from '../components/FloatingEmoji';
 import { supabase } from '@/lib/supabase'; // Import Supabase client
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { Button } from "@/components/ui/button";
+import { useSearchParams } from 'next/navigation';
 
 const scrollItems = [
   { emoji: '🍕', amount: '$150', status: 'Takeout tycoon in training' },
@@ -21,13 +22,16 @@ const scrollItems = [
   { emoji: '🍝', amount: '$70', status: 'Pasta patron' },
 ];
 
-export default function Landing() {
+function LandingContent() {
   const router = useRouter();
   const { user } = useUser();
   const [selectedEmojis, setSelectedEmojis] = React.useState<string[]>([]);
   const [email, setEmail] = React.useState('');
   const [isError, setIsError] = React.useState(false);
   const [shake, setShake] = React.useState(false);
+  const [emailSent, setEmailSent] = React.useState(false);
+  const searchParams = useSearchParams();
+  const referralCode = searchParams.get('ref');
 
   React.useEffect(() => {
     const shuffled = [...scrollItems].sort(() => 0.5 - Math.random());
@@ -57,7 +61,7 @@ export default function Landing() {
       const { error } = await supabase.auth.signInWithOtp({ 
         email,
         options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_REDIRECT_URL,
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_REDIRECT_URL}${referralCode ? `?ref=${referralCode}` : ''}`,
         },
       });
       if (error) {
@@ -70,6 +74,7 @@ export default function Landing() {
         }, 2000);
       } else {
         console.log('Magic link sent to:', email);
+        setEmailSent(true);
       }
     }
   };
@@ -84,7 +89,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col gap-2 justify-center md:justify-center items-center text-center p-4 relative overflow-hidden bg-lightAccent">
+    <div className="no-scroll min-h-screen flex flex-col gap-2 justify-center md:justify-center items-center text-center relative overflow-hidden bg-lightAccent">
       {selectedEmojis.map((emoji, index) => (
         <FloatingEmoji key={index} emoji={emoji} size={40} />
       ))}
@@ -107,12 +112,19 @@ export default function Landing() {
             </Button>
             <a 
               onClick={handleSignOut}
-              className="font-bold text-black underline cursor-pointer hover:text-gray-700"
+              className="font-bold text-black underline"
               >
               Sign Out
             </a>
               </div>
           </>
+        ) : emailSent ? (
+          <div className="flex flex-col items-center gap-4">
+            <p className="text-xl mb-4 text-black">Check your email 📧</p>
+            <p className="text-base mb-8 text-gray-800">
+              We sent you an email for verification. Please check your inbox and click the link to continue.
+            </p>
+          </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
             <div className="w-full max-w-md">
@@ -151,5 +163,13 @@ export default function Landing() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function Landing() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LandingContent />
+    </Suspense>
   );
 }

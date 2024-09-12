@@ -1,5 +1,6 @@
 'use client'
 
+import React, { Suspense } from 'react'
 import { useState, useEffect } from 'react'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -9,8 +10,9 @@ import { supabase } from '@/lib/supabase'
 import { useUser } from '@/contexts/UserContext'
 import { v4 as uuidv4 } from 'uuid'
 import crypto from 'crypto'
+import { useSearchParams } from 'next/navigation'
 
-export default function Component() {
+function UserInputContent() {
   const router = useRouter()
   const { user } = useUser()
   const [monthlySpend, setMonthlySpend] = useState('')
@@ -18,10 +20,12 @@ export default function Component() {
   const [isLoading, setIsLoading] = useState(false)
   const [isEditable, setIsEditable] = useState(true)
   const [userExists, setUserExists] = useState(false)
+  const searchParams = useSearchParams();
+  const referralCode = searchParams.get('ref');
 
   const incomeOptions = [
-    { value: "<50k", label: "<$50k" },
-    { value: "50k-150k", label: "$50k-$150k" },
+    { value: "<100k", label: "<$100k" },
+    { value: "100k-150k", label: "$100k-$150k" },
     { value: "150k-250k", label: "$150k-$250k" },
     { value: "250k+", label: "$250k+" },
   ]
@@ -60,56 +64,91 @@ export default function Component() {
     return hash.digest('hex').substring(0, 10)
   }
 
-  const handleSubmit = async () => {
-    if (!user || !monthlySpend || !income) return
+  const updateBrokerank = async (userId: string) => {
+    const response = await fetch('/api/update-brokerank', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId }),
+    });
 
-    setIsLoading(true)
-
-    if (userExists) {
-      // Update existing user data
-      const { error } = await supabase
-        .from('users')
-        .update({
-          income_level: income,
-          monthly_spend: parseFloat(monthlySpend),
-        })
-        .eq('id', user.id)
-
-      setIsLoading(false)
-
-      if (error) {
-        console.error('Error updating user data:', error)
-        return
-      }
-    } else {
-      // Insert new user data
-      const referralCode = generateReferralCode(uuidv4(), user.email!)
-
-      const { error } = await supabase
-        .from('users')
-        .insert({
-          id: user.id,
-          email: user.email,
-          income_level: income,
-          monthly_spend: parseFloat(monthlySpend),
-          referral_code: referralCode,
-          is_seed_user: false
-        })
-
-      setIsLoading(false)
-
-      if (error) {
-        console.error('Error inserting user data:', error)
-        return
-      }
+    if (!response.ok) {
+      console.error('Failed to update brokerank');
     }
+  };
 
-    router.push('/brokestats')
-  }
+  const handleSubmit = async () => {
+    if (!user || !monthlySpend || !income) return;
+
+    setIsLoading(true);
+
+    try {
+      if (userExists) {
+        // Update existing user data
+        const { error } = await supabase
+          .from('users')
+          .update({
+            income_level: income,
+            monthly_spend: parseFloat(monthlySpend),
+          })
+          .eq('id', user.id);
+
+        if (error) throw error;
+      } else {
+        // Insert new user data
+        const newReferralCode = generateReferralCode(uuidv4(), user.email!);
+
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email,
+            income_level: income,
+            monthly_spend: parseFloat(monthlySpend),
+            referral_code: newReferralCode,
+            referred_by: referralCode ? await getReferrerId(referralCode) : null,
+            is_seed_user: false
+          });
+
+        if (insertError) throw insertError;
+
+        // Create friendships if there's a referrer
+        if (referralCode) {
+          const referrerId = await getReferrerId(referralCode);
+          if (referrerId) {
+            await supabase.from('friendships').insert([
+              { user_id: referrerId, friend_id: user.id, is_referral: true },
+              { user_id: user.id, friend_id: referrerId, is_referral: true },
+            ]);
+          }
+        }
+      }
+
+      // Update brokerank after user data is inserted/updated
+      await updateBrokerank(user.id);
+
+      setIsLoading(false);
+      router.push('/brokestats');
+    } catch (error) {
+      console.error('Error updating user data:', error);
+      setIsLoading(false);
+    }
+  };
+
+  // Add this helper function
+  const getReferrerId = async (code: string) => {
+    const { data: referrer } = await supabase
+      .from('users')
+      .select('id')
+      .eq('referral_code', code)
+      .single();
+    return referrer ? referrer.id : null;
+  };
 
   return (
     <ProtectedRoute>
-      <div className="bg-lightAccent min-h-screen flex items-center justify-center">
+      <div className="bg-lightAccent min-h-screen flex items-center justify-center no-scroll">
         <div className="bg-orange-200 border-black border-4 rounded-lg shadow-2xl w-4/5 sm:w-4/5 md:w-3/5 lg:w-2/5 xl:w-2/3 mx-auto flex flex-col">
           <h2 className="text-lg font-bold text-center text-white bg-black p-2">Enter your monthly spend</h2>
           <div className="flex-grow overflow-auto flex flex-col p-4">
@@ -165,5 +204,13 @@ export default function Component() {
         </div>
       </div>
     </ProtectedRoute>
+  )
+}
+
+export default function Component() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <UserInputContent />
+    </Suspense>
   )
 }
