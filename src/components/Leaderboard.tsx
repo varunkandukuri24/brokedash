@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, ArrowUpDown, ChevronsLeft, ChevronsRight, Share2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ArrowUpDown, ChevronsLeft, ChevronsRight, Share2, PencilIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUser } from '@/contexts/UserContext'
 
@@ -147,6 +147,11 @@ export default function Component() {
   const currentUserData = brokedasherData.find(dasher => dasher.id === user?.id)
   const userCategory = currentUserRank ? categories[Math.min(Math.floor((currentUserRank - 1) / 5), categories.length - 1)] : null
 
+  const handleEdit = () => {
+    // Implement edit functionality here
+    console.log("Edit button clicked")
+  }
+
   return (
     <div className="bg-lightAccent border-black border-4 rounded-lg shadow-2xl w-full mx-auto flex flex-col h-[calc(100vh-6rem)] overflow-hidden">
       <h2 className="text-lg font-bold text-center text-white bg-black">brokerank</h2>
@@ -256,7 +261,21 @@ export default function Component() {
                     <>
                       <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{dasher.days_till_broke}</td>
                       <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{dasher.income_level}</td>
-                      <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">${dasher.monthly_spend.toLocaleString()}</td>
+                      <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">
+                        <div className="flex items-center justify-center">
+                          ${dasher.monthly_spend.toLocaleString()}
+                          {dasher.id === user?.id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleEdit}
+                              className="ml-1 p-0 h-4 w-4"
+                            >
+                              <PencilIcon className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                      </td>
                     </>
                   )}
                 </tr>
