@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { AirPods, ConcertTickets, HairDryer, Thermos, VisionPro } from '@/assets/nounssvgs'
-
+import { AirPods, ConcertTickets, HairDryer, Thermos, VisionPro, Book, GymMembership, Premium, YeezyBoosts, Purse } from '@/assets/nounssvgs'
 
 export default function NounsBox() {
-  const [selectedSVG, setSelectedSVG] = useState<'thermos' | 'concertTickets' | 'visionPro' |'airPods' | 'hairDryer' | null>(null)
+  const [selectedSVG, setSelectedSVG] = useState<'thermos' | 'concertTickets' | 'visionPro' | 'airPods' | 'hairDryer' | 'book' | 'gymMembership' | 'premium' | 'yeezyBoosts' | 'purse' | null>(null)
 
-  const handleClick = (svg: 'thermos' | 'concertTickets' | 'visionPro' |'airPods' | 'hairDryer') => {
+  const handleClick = (svg: 'thermos' | 'concertTickets' | 'visionPro' | 'airPods' | 'hairDryer' | 'book' | 'gymMembership' | 'premium' | 'yeezyBoosts' | 'purse') => {
     setSelectedSVG(svg)
   }
 
@@ -22,6 +21,16 @@ export default function NounsBox() {
         return <AirPods className="w-16 h-16" />
       case 'hairDryer':
         return <HairDryer className="w-16 h-16" />
+      case 'book':
+        return <Book className="w-16 h-16" />
+      case 'gymMembership':
+        return <GymMembership className="w-16 h-16" />
+      case 'premium':
+        return <Premium className="w-16 h-16" />
+      case 'yeezyBoosts':
+        return <YeezyBoosts className="w-16 h-16" />
+      case 'purse':
+        return <Purse className="w-16 h-16" />
       default:
         return null
     }
@@ -39,6 +48,16 @@ export default function NounsBox() {
         return '10 AirPods'
       case 'hairDryer':
         return '10 Hair Dryers'
+      case 'book':
+        return '10 Books'
+      case 'gymMembership':
+        return '10 Gym Memberships'
+      case 'premium':
+        return '10 Premium Subscriptions'
+      case 'yeezyBoosts':
+        return '10 Yeezy Boosts'
+      case 'purse':
+        return '10 Purses'
       default:
         return 'Select an item'
     }
@@ -50,6 +69,11 @@ export default function NounsBox() {
     { key: 'visionPro', component: VisionPro },
     { key: 'airPods', component: AirPods },
     { key: 'hairDryer', component: HairDryer },
+    { key: 'book', component: Book },
+    { key: 'gymMembership', component: GymMembership },
+    { key: 'premium', component: Premium },
+    { key: 'yeezyBoosts', component: YeezyBoosts },
+    { key: 'purse', component: Purse },
   ];
 
   return (
@@ -71,8 +95,20 @@ export default function NounsBox() {
               )}
             </div>
             <div className="w-full h-px bg-black mb-2"></div>
+            <div className="grid grid-cols-5 gap-2 justify-items-center mb-2">
+              {buttonComponents.slice(0, 5).map(({ key, component: SVGComponent }) => (
+                <Button
+                  key={key}
+                  onClick={() => handleClick(key as any)}
+                  variant={selectedSVG === key ? 'default' : 'outline'}
+                  className="p-1 h-10 w-10 bg-white hover:bg-gray-100 rounded-full border-2 border-black"
+                >
+                  <SVGComponent className="w-6 h-6" />
+                </Button>
+              ))}
+            </div>
             <div className="grid grid-cols-5 gap-2 justify-items-center">
-              {buttonComponents.map(({ key, component: SVGComponent }) => (
+              {buttonComponents.slice(5).map(({ key, component: SVGComponent }) => (
                 <Button
                   key={key}
                   onClick={() => handleClick(key as any)}
