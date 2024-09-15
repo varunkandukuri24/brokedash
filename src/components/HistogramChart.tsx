@@ -24,11 +24,25 @@ const categories = [
 export default function HistogramChart() {
   const { user } = useUser();
   const [userPercentile, setUserPercentile] = useState<number | null>(null)
-  const [monthlySpendData, setMonthlySpendData] = useState<number[]>([])
+  const [percentileData, setPercentileData] = useState<number[]>(new Array(10).fill(0))
+  const [userCategory, setUserCategory] = useState<{ name: string, emoji: string } | null>(null)
+  const [totalUsers, setTotalUsers] = useState<number>(0)
 
   useEffect(() => {
     async function fetchData() {
       if (!user) return;
+
+      // Fetch total number of users
+      const { count, error: countError } = await supabase
+        .from('brokerank')
+        .select('*', { count: 'exact', head: true })
+
+      if (countError) {
+        console.error('Error fetching total users:', countError)
+        return
+      }
+
+      setTotalUsers(count || 0)
 
       // Fetch all monthly_spend data
       const { data: allData, error: allDataError } = await supabase
@@ -41,10 +55,21 @@ export default function HistogramChart() {
         return
       }
 
-      // Fetch user's monthly_spend
+      const allSpends = allData.map(d => d.monthly_spend)
+      const totalCount = allSpends.length
+
+      // Calculate percentile buckets
+      const newPercentileData = new Array(10).fill(0)
+      allSpends.forEach((spend, index) => {
+        const percentile = Math.floor((index / totalCount) * 10)
+        newPercentileData[percentile]++
+      })
+      setPercentileData(newPercentileData)
+
+      // Fetch user's data
       const { data: userData, error: userDataError } = await supabase
         .from('brokerank')
-        .select('monthly_spend')
+        .select('monthly_spend, category, emoji')
         .eq('id', user.id)
         .single()
 
@@ -53,28 +78,24 @@ export default function HistogramChart() {
         return
       }
 
-      const allSpends = allData.map(d => d.monthly_spend)
-      setMonthlySpendData(allSpends)
-
       // Calculate user's percentile
       const userSpend = userData.monthly_spend
-      const lowerSpends = allSpends.filter(spend => spend <= userSpend)
-      const calculatedPercentile = Math.round((lowerSpends.length / allSpends.length) * 100)
+      const lowerSpends = allSpends.filter(spend => spend < userSpend).length
+      const equalSpends = allSpends.filter(spend => spend === userSpend).length
+      const calculatedPercentile = Math.min(
+        Math.floor(((lowerSpends + equalSpends / 2) / totalCount) * 100),
+        99
+      )
       setUserPercentile(calculatedPercentile)
+
+      // Set user's category and emoji
+      setUserCategory({ name: userData.category, emoji: userData.emoji })
     }
 
     fetchData()
   }, [user])
 
-  const realData = useMemo(() => {
-    if (monthlySpendData.length === 0) return []
-    const bucketSize = Math.ceil(monthlySpendData.length / 10)
-    return Array.from({ length: 10 }, (_, i) => {
-      const start = i * bucketSize
-      const end = Math.min((i + 1) * bucketSize, monthlySpendData.length)
-      return monthlySpendData.slice(start, end).length
-    })
-  }, [monthlySpendData])
+  const realData = percentileData
 
   const maxValue = Math.max(...realData)
 
@@ -97,15 +118,15 @@ export default function HistogramChart() {
   }
 
   const percentileX = 50 + ((userPercentile ?? 0) / 100) * 400
-  const userCategory = categories[Math.floor((userPercentile ?? 0) / 10)]
+  
 
   return (
     <div className="w-full h-full flex flex-col">
-      {userPercentile !== null ? (
+      {userPercentile !== null && userCategory !== null ? (
         <div className="bg-orange-200 p-2 rounded-lg shadow-lg flex-grow border-4 border-black">
           <div className="h-full w-full bg-white p-4 rounded-lg border-4 border-black flex flex-col">
             <h2 className="text-xl font-bold mb-2 text-center text-black">
-              You spend more than {userPercentile}% of people
+              You spend more than {userPercentile}% of {totalUsers} users
             </h2>
             <div className="flex-grow relative" style={{ minHeight: '280px' }}>
               <svg
@@ -156,15 +177,15 @@ export default function HistogramChart() {
                   />
                 ))}
 
-                {/* X-axis dollar amount labels */}
+                {/* Updated X-axis dollar amount labels */}
                 <text x="50" y="250" textAnchor="start" className="fill-black text-[10px] sm:text-xs font-medium">
-                  $150
+                  $50
                 </text>
                 <text x="250" y="250" textAnchor="middle" className="fill-black text-[10px] sm:text-xs font-medium">
-                  $500
+                  $750
                 </text>
                 <text x="450" y="250" textAnchor="end" className="fill-black text-[10px] sm:text-xs font-medium">
-                  $1000+
+                  $1500+
                 </text>
 
                 {/* User's percentile dotted line */}
@@ -185,12 +206,8 @@ export default function HistogramChart() {
                   fill="black"
                   className="text-[10px] sm:text-xs font-semibold"
                 >
-                  {userCategory && (
-                    <>
-                      <tspan x={percentileX - 40} textAnchor="end" dy="0.3em">{userCategory.emoji}</tspan>
-                      <tspan x={percentileX - 35} textAnchor="start" dy="0">{userCategory.name}</tspan>
-                    </>
-                  )}
+                  <tspan x={percentileX - 40} textAnchor="end" dy="0.3em">{userCategory.emoji}</tspan>
+                  <tspan x={percentileX - 35} textAnchor="start" dy="0">{userCategory.name}</tspan>
                 </text>
               </svg>
             </div>
