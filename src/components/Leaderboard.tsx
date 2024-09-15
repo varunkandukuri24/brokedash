@@ -4,18 +4,18 @@ import { ChevronLeft, ChevronRight, ArrowUpDown, ChevronsLeft, ChevronsRight, Sh
 import { supabase } from '@/lib/supabase'
 import { useUser } from '@/contexts/UserContext'
 
-const categories = [
-  { name: "Broke Beginner", range: "0-9th", emoji: "😓" },
-  { name: "Frugal Freshman", range: "10-19th", emoji: "🐣" },
-  { name: "Savvy Sophomore", range: "20-29th", emoji: "📚" },
-  { name: "Judicious Junior", range: "30-39th", emoji: "🤔" },
-  { name: "Senior Saver", range: "40-49th", emoji: "💼" },
-  { name: "Balanced Bachelor", range: "50-59th", emoji: "⚖️" },
-  { name: "Master of Moderation", range: "60-69th", emoji: "🧘" },
-  { name: "Doctorate in Dollars", range: "70-79th", emoji: "🎓" },
-  { name: "Professor of Prosperity", range: "80-89th", emoji: "🏆" },
-  { name: "Wealth Wizard", range: "90-99th", emoji: "🧙" }
-]
+const categories = {
+  "Broke Beginner": { range: "0-9th", emoji: "😓" },
+  "Frugal Freshman": { range: "10-19th", emoji: "🐣" },
+  "Savvy Sophomore": { range: "20-29th", emoji: "📚" },
+  "Judicious Junior": { range: "30-39th", emoji: "🤔" },
+  "Senior Saver": { range: "40-49th", emoji: "💼" },
+  "Balanced Bachelor": { range: "50-59th", emoji: "⚖️" },
+  "Master of Moderation": { range: "60-69th", emoji: "🧘" },
+  "Doctorate in Dollars": { range: "70-79th", emoji: "🎓" },
+  "Professor of Prosperity": { range: "80-89th", emoji: "🏆" },
+  "Wealth Wizard": { range: "90-99th", emoji: "🧙" }
+};
 
 type Brokedasher = {
   id: string
@@ -36,13 +36,24 @@ export default function Component() {
   const [leaderboardType, setLeaderboardType] = useState('global')
   const [currentUserRank, setCurrentUserRank] = useState<number | null>(null)
   const [referralCode, setReferralCode] = useState<string | null>(null)
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false)
+  const [userCategory, setUserCategory] = useState<{ name: string, emoji: string, range: string } | null>(null)
 
   useEffect(() => {
     if (user) {
       fetchData()
       fetchReferralCode()
+      fetchUserCategory()
     }
   }, [leaderboardType, user])
+
+  useEffect(() => {
+    if (brokedasherData.length > 0 && !initialLoadComplete && currentUserRank) {
+      const userPage = Math.floor((currentUserRank - 1) / pageSize)
+      setCurrentPage(userPage)
+      setInitialLoadComplete(true)
+    }
+  }, [brokedasherData, currentUserRank])
 
   const fetchData = async () => {
     if (!user) return
@@ -76,8 +87,9 @@ export default function Component() {
       return
     }
 
-    setBrokedasherData(data)
-    const currentUser = data.find(dasher => dasher.id === user.id)
+    const sortedData = data.sort((a, b) => a.rank - b.rank)
+    setBrokedasherData(sortedData)
+    const currentUser = sortedData.find(dasher => dasher.id === user.id)
     if (currentUser) {
       setCurrentUserRank(currentUser.rank)
     }
@@ -98,6 +110,29 @@ export default function Component() {
     }
 
     setReferralCode(data.referral_code)
+  }
+
+  const fetchUserCategory = async () => {
+    if (!user) return
+
+    const { data, error } = await supabase
+      .from('brokerank')
+      .select('category, emoji')
+      .eq('id', user.id)
+      .single()
+
+    if (error) {
+      console.error('Error fetching user category:', error)
+      return
+    }
+
+    if (data && data.category in categories) {
+      setUserCategory({
+        name: data.category,
+        emoji: data.emoji,
+        range: categories[data.category as keyof typeof categories].range
+      })
+    }
   }
 
   const handleShare = async () => {
@@ -145,7 +180,6 @@ export default function Component() {
   const currentPageData = sortedData.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
 
   const currentUserData = brokedasherData.find(dasher => dasher.id === user?.id)
-  const userCategory = currentUserRank ? categories[Math.min(Math.floor((currentUserRank - 1) / 5), categories.length - 1)] : null
 
   const handleEdit = () => {
     // Implement edit functionality here
