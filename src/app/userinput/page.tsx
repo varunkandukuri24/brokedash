@@ -11,12 +11,13 @@ import { useUser } from '@/contexts/UserContext'
 import { v4 as uuidv4 } from 'uuid'
 import crypto from 'crypto'
 import { useSearchParams } from 'next/navigation'
+import { PencilIcon } from 'lucide-react'
 
 function UserInputContent() {
   const router = useRouter()
   const { user } = useUser()
   const [monthlySpend, setMonthlySpend] = useState('')
-  const [income, setIncome] = useState('50k-150k')
+  const [income, setIncome] = useState('100k-150k')
   const [isLoading, setIsLoading] = useState(false)
   const [isEditable, setIsEditable] = useState(true)
   const [userExists, setUserExists] = useState(false)
@@ -149,8 +150,21 @@ function UserInputContent() {
   return (
     <ProtectedRoute>
       <div className="bg-lightAccent min-h-screen flex items-center justify-center no-scroll">
-        <div className="bg-orange-200 border-black border-4 rounded-lg shadow-2xl w-4/5 sm:w-4/5 md:w-3/5 lg:w-2/5 xl:w-2/3 mx-auto flex flex-col">
-          <h2 className="text-lg font-bold text-center text-white bg-black p-2">Enter your monthly spend</h2>
+        <div className="bg-orange-200 border-black border-4 rounded-lg shadow-2xl w-[95%] sm:w-4/5 md:w-3/5 lg:w-2/5 xl:w-2/3 mx-auto flex flex-col relative">
+          <div className="bg-black text-white p-2 flex items-center justify-between">
+            <div className="w-8" /> {/* Spacer to balance the edit button */}
+            <h2 className="text-lg font-bold text-center flex-grow">Enter your monthly spend</h2>
+            {!isEditable && (
+              <Button 
+                className="p-1 h-8 w-8 bg-transparent hover:bg-orange-300 text-white hover:text-black border border-white hover:border-black"
+                onClick={() => setIsEditable(true)}
+                aria-label="Edit monthly spend"
+              >
+                <PencilIcon className="h-4 w-4" />
+              </Button>
+            )}
+            {isEditable && <div className="w-8" />} {/* Spacer when edit button is not shown */}
+          </div>
           <div className="flex-grow overflow-auto flex flex-col p-4">
             <div className="flex items-center justify-between mb-2 pb-4 border-b-2 border-black">
               <span className="text-black font-semibold text-sm sm:text-base md:text-lg lg:text-xl">1 x food you bought instead of groceries</span>
@@ -175,7 +189,7 @@ function UserInputContent() {
                     className={`flex-1 py-2 px-2 rounded-full text-xs sm:text-sm transition-colors duration-300 ${
                       income === option.value 
                         ? 'bg-black text-orange-200' 
-                        : 'text-black hover:bg-orange-200'
+                        : 'text-black hover:bg-orange-300'
                     }`}
                     onClick={() => setIncome(option.value)}
                     disabled={!isEditable}
@@ -185,14 +199,6 @@ function UserInputContent() {
                 ))}
               </div>
             </div>
-            {!isEditable && (
-              <Button 
-                className="w-full mb-4 bg-white hover:bg-orange-300 text-black font-bold py-2 px-4 rounded-full transition-all duration-200 ease-in-out transform hover:scale-[1.02] border-2 border-black"
-                onClick={() => setIsEditable(true)}
-              >
-                Edit Spend
-              </Button>
-            )}
             <Button 
               className="w-full bg-black hover:bg-white hover:text-black text-white font-bold py-2 px-4 rounded-full transition-all duration-200 ease-in-out transform hover:scale-[1.02] border-2 border-black"
               onClick={handleSubmit}

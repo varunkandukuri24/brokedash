@@ -1,21 +1,21 @@
 import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, ArrowUpDown, ChevronsLeft, ChevronsRight, Share2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ArrowUpDown, ChevronsLeft, ChevronsRight, Share2, PencilIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUser } from '@/contexts/UserContext'
 
-const categories = [
-  { name: "Broke Beginner", range: "0-9th", emoji: "😓" },
-  { name: "Frugal Freshman", range: "10-19th", emoji: "🐣" },
-  { name: "Savvy Sophomore", range: "20-29th", emoji: "📚" },
-  { name: "Judicious Junior", range: "30-39th", emoji: "🤔" },
-  { name: "Senior Saver", range: "40-49th", emoji: "💼" },
-  { name: "Balanced Bachelor", range: "50-59th", emoji: "⚖️" },
-  { name: "Master of Moderation", range: "60-69th", emoji: "🧘" },
-  { name: "Doctorate in Dollars", range: "70-79th", emoji: "🎓" },
-  { name: "Professor of Prosperity", range: "80-89th", emoji: "🏆" },
-  { name: "Wealth Wizard", range: "90-99th", emoji: "🧙" }
-]
+const categories = {
+  "Broke Beginner": { range: "0-9th", emoji: "😓" },
+  "Frugal Freshman": { range: "10-19th", emoji: "🐣" },
+  "Savvy Sophomore": { range: "20-29th", emoji: "📚" },
+  "Judicious Junior": { range: "30-39th", emoji: "🤔" },
+  "Senior Saver": { range: "40-49th", emoji: "💼" },
+  "Balanced Bachelor": { range: "50-59th", emoji: "⚖️" },
+  "Master of Moderation": { range: "60-69th", emoji: "🧘" },
+  "Doctorate in Dollars": { range: "70-79th", emoji: "🎓" },
+  "Professor of Prosperity": { range: "80-89th", emoji: "🏆" },
+  "Wealth Wizard": { range: "90-99th", emoji: "🧙" }
+};
 
 type Brokedasher = {
   id: string
@@ -36,13 +36,24 @@ export default function Component() {
   const [leaderboardType, setLeaderboardType] = useState('global')
   const [currentUserRank, setCurrentUserRank] = useState<number | null>(null)
   const [referralCode, setReferralCode] = useState<string | null>(null)
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false)
+  const [userCategory, setUserCategory] = useState<{ name: string, emoji: string, range: string } | null>(null)
 
   useEffect(() => {
     if (user) {
       fetchData()
       fetchReferralCode()
+      fetchUserCategory()
     }
   }, [leaderboardType, user])
+
+  useEffect(() => {
+    if (brokedasherData.length > 0 && !initialLoadComplete && currentUserRank) {
+      const userPage = Math.floor((currentUserRank - 1) / pageSize)
+      setCurrentPage(userPage)
+      setInitialLoadComplete(true)
+    }
+  }, [brokedasherData, currentUserRank])
 
   const fetchData = async () => {
     if (!user) return
@@ -76,8 +87,9 @@ export default function Component() {
       return
     }
 
-    setBrokedasherData(data)
-    const currentUser = data.find(dasher => dasher.id === user.id)
+    const sortedData = data.sort((a, b) => a.rank - b.rank)
+    setBrokedasherData(sortedData)
+    const currentUser = sortedData.find(dasher => dasher.id === user.id)
     if (currentUser) {
       setCurrentUserRank(currentUser.rank)
     }
@@ -98,6 +110,29 @@ export default function Component() {
     }
 
     setReferralCode(data.referral_code)
+  }
+
+  const fetchUserCategory = async () => {
+    if (!user) return
+
+    const { data, error } = await supabase
+      .from('brokerank')
+      .select('category, emoji')
+      .eq('id', user.id)
+      .single()
+
+    if (error) {
+      console.error('Error fetching user category:', error)
+      return
+    }
+
+    if (data && data.category in categories) {
+      setUserCategory({
+        name: data.category,
+        emoji: data.emoji,
+        range: categories[data.category as keyof typeof categories].range
+      })
+    }
   }
 
   const handleShare = async () => {
@@ -145,7 +180,11 @@ export default function Component() {
   const currentPageData = sortedData.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
 
   const currentUserData = brokedasherData.find(dasher => dasher.id === user?.id)
-  const userCategory = currentUserRank ? categories[Math.min(Math.floor((currentUserRank - 1) / 5), categories.length - 1)] : null
+
+  const handleEdit = () => {
+    // Implement edit functionality here
+    console.log("Edit button clicked")
+  }
 
   return (
     <div className="bg-lightAccent border-black border-4 rounded-lg shadow-2xl w-full mx-auto flex flex-col h-[calc(100vh-6rem)] overflow-hidden">
@@ -256,7 +295,21 @@ export default function Component() {
                     <>
                       <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{dasher.days_till_broke}</td>
                       <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{dasher.income_level}</td>
-                      <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">${dasher.monthly_spend.toLocaleString()}</td>
+                      <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">
+                        <div className="flex items-center justify-center">
+                          ${dasher.monthly_spend.toLocaleString()}
+                          {dasher.id === user?.id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleEdit}
+                              className="ml-1 p-0 h-4 w-4"
+                            >
+                              <PencilIcon className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                      </td>
                     </>
                   )}
                 </tr>
