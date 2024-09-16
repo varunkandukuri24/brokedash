@@ -21,9 +21,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <UserProvider>
-          <div className="flex flex-col min-h-screen">
+          <div className="landing-page">
             <Navbar />
-            <main className="flex-grow">{children}</main>
+            <main className="landing-content">{children}</main>
             <Footer />
           </div>
         </UserProvider>

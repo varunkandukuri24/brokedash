@@ -2,11 +2,16 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { AirPods, ConcertTickets, HairDryer, Thermos, VisionPro, Book, GymMembership, Premium, YeezyBoosts, Purse } from '@/assets/nounssvgs'
 
-export default function NounsBox() {
+interface NounsBoxProps {
+  onSelect: (noun: string | null) => void;
+}
+
+export default function NounsBox({ onSelect }: NounsBoxProps) {
   const [selectedSVG, setSelectedSVG] = useState<'thermos' | 'concertTickets' | 'visionPro' | 'airPods' | 'hairDryer' | 'book' | 'gymMembership' | 'premium' | 'yeezyBoosts' | 'purse' | null>(null)
 
   const handleClick = (svg: 'thermos' | 'concertTickets' | 'visionPro' | 'airPods' | 'hairDryer' | 'book' | 'gymMembership' | 'premium' | 'yeezyBoosts' | 'purse') => {
     setSelectedSVG(svg)
+    onSelect(svg)
   }
 
   const getSVGComponent = () => {
@@ -77,9 +82,9 @@ export default function NounsBox() {
   ];
 
   return (
-    <div className="w-full">
-      <div className="bg-orange-200 p-2 rounded-lg shadow-lg border-4 border-black">
-        <div className="w-full bg-white p-4 rounded-lg border-4 border-black flex flex-col">
+    <div className="w-full h-full">
+      <div className="bg-orange-200 p-2 rounded-lg shadow-lg border-4 border-black h-full">
+        <div className="w-full h-full bg-white p-4 rounded-lg border-4 border-black flex flex-col">
           <h2 className="text-xl font-bold mb-2 text-center text-black">
             What would you rather have?
           </h2>
