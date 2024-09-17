@@ -319,14 +319,12 @@ export default function Component() {
                 <td colSpan={leaderboardType === 'global' ? 5 : 2} className="text-center py-4 text-lg font-bold text-gray-500">
                   {leaderboardType === 'friends' ? (
                     <div className="flex flex-col items-center">
-                      <p>Invite friends to view</p>
-                      <Button
-                        onClick={handleShare}
-                        className="mt-2 bg-orange-500 hover:bg-orange-600 text-white"
-                      >
+                      <p className='text-base text-black'>Invite at least 2 friends to view</p>
+                      <Button onClick={handleShare} className="mt-2 mb-4 bg-black hover:bg-white text-white hover:text-black font-bold py-2 px-4 rounded-full transition-all duration-200 ease-in-out transform hover:scale-[1.02] border-2 border-black flex items-center justify-center">
                         <Share2 className="mr-2 h-4 w-4" />
                         Invite Friends
                       </Button>
+                      <p className='text-xs text-black'>No names and numbers, we respect the broke-ode</p>
                     </div>
                   ) : (
                     "No data available"
