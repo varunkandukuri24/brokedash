@@ -128,7 +128,7 @@ export default function HistogramChart() {
             <h2 className="text-xl font-bold mb-2 text-center text-black">
               You spend more than {userPercentile}% of {totalUsers} users
             </h2>
-            <div className="flex-grow relative" style={{ minHeight: '280px' }}>
+            <div className="flex-grow relative" style={{ minHeight: '220px' }}>
               <svg
                 width="100%"
                 height="100%"
