@@ -30,6 +30,7 @@ function LandingContent() {
   const [isError, setIsError] = React.useState(false);
   const [shake, setShake] = React.useState(false);
   const [emailSent, setEmailSent] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const searchParams = useSearchParams();
   const referralCode = searchParams.get('ref');
 
@@ -58,6 +59,7 @@ function LandingContent() {
         setIsError(false);
       }, 2000);
     } else {
+      setIsSubmitting(true);
       const redirectUrl = process.env.NODE_ENV === 'production'
         ? process.env.NEXT_PUBLIC_REDIRECT_URL_PROD
         : process.env.NEXT_PUBLIC_REDIRECT_URL_DEV;
@@ -76,10 +78,12 @@ function LandingContent() {
           setEmail('');
           setIsError(false);
         }, 2000);
+        setIsSubmitting(false);
       } else {
         console.log('Magic link sent to:', email);
         setEmailSent(true);
       }
+      setIsSubmitting(false);
     }
   };
 
@@ -99,7 +103,7 @@ function LandingContent() {
       ))}
       <div className="mt-[-4rem] md:mt-0">
         <h1 className="text-4xl md:text-7xl font-bold mb-4 text-black">
-          see who spends 💸 <br/> more on fo🥘d delivery than you
+          See who spends 💸 <br/> more on fo🥘d delivery than you
         </h1>
         <p className="text-base md:text-2xl mb-8 text-gray-800">
           find your place in the food delivery chain 🦁
@@ -116,7 +120,7 @@ function LandingContent() {
             </Button>
             <a 
               onClick={handleSignOut}
-              className="font-bold text-black underline"
+              className="font-bold text-black underline cursor-pointer"
               >
               Sign Out
             </a>
@@ -162,8 +166,12 @@ function LandingContent() {
                 </p>
               )}
             </div>
-            <button type="submit" className="bg-black border-2 border-black text-white text-xl py-3 px-6 rounded-full transition hover:scale-[1.02] hover:text-black hover:bg-white duration-300 shadow-[0px_4px_10px_rgba(0,0,0,0.5)]">
-              Compare Now
+            <button 
+              type="submit" 
+              className="bg-black border-2 border-black text-white text-xl py-3 px-6 rounded-full transition hover:scale-[1.02] hover:text-black hover:bg-white duration-300 shadow-[0px_4px_10px_rgba(0,0,0,0.5)]"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Submitting...' : 'Compare Now'}
             </button>
           </form>
         )}
