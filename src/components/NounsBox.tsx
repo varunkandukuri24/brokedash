@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { AirPods, ConcertTickets, HairDryer, Thermos, VisionPro, Book, GymMembership, Premium, YeezyBoosts, Purse } from '@/assets/nounssvgs'
+import { useUser } from '@/contexts/UserContext'
+import { supabase } from '@/lib/supabase'
 
 interface NounsBoxProps {
   onSelect: (noun: string | null) => void;
@@ -8,10 +10,29 @@ interface NounsBoxProps {
 
 export default function NounsBox({ onSelect }: NounsBoxProps) {
   const [selectedSVG, setSelectedSVG] = useState<'thermos' | 'concertTickets' | 'visionPro' | 'airPods' | 'hairDryer' | 'book' | 'gymMembership' | 'premium' | 'yeezyBoosts' | 'purse'>('thermos')
+  const [userMonthlySpend, setUserMonthlySpend] = useState<number | null>(null)
+  const { user } = useUser()
 
   useEffect(() => {
     onSelect('thermos')
-  }, [onSelect])
+    fetchUserMonthlySpend()
+  }, [onSelect, user])
+
+  const fetchUserMonthlySpend = async () => {
+    if (user) {
+      const { data, error } = await supabase
+        .from('users')
+        .select('monthly_spend')
+        .eq('id', user.id)
+        .single()
+
+      if (error) {
+        console.error('Error fetching user monthly spend:', error)
+      } else if (data) {
+        setUserMonthlySpend(data.monthly_spend)
+      }
+    }
+  }
 
   const handleClick = (svg: 'thermos' | 'concertTickets' | 'visionPro' | 'airPods' | 'hairDryer' | 'book' | 'gymMembership' | 'premium' | 'yeezyBoosts' | 'purse') => {
     setSelectedSVG(svg)
@@ -42,68 +63,61 @@ export default function NounsBox({ onSelect }: NounsBoxProps) {
         return <Purse className="w-16 h-16 animate-bounce" />
     }
   }
-
-  const getDisplayText = () => {
-    switch (selectedSVG) {
-      case 'thermos':
-        return '10 Stanley Cups'
-      case 'concertTickets':
-        return '10 Concert Tickets'
-      case 'visionPro':
-        return '10 Vision Pros'
-      case 'airPods':
-        return '10 AirPods'
-      case 'hairDryer':
-        return '10 Hair Dryers'
-      case 'book':
-        return '10 Books'
-      case 'gymMembership':
-        return '10 Gym Memberships'
-      case 'premium':
-        return '10 Premium Subscriptions'
-      case 'yeezyBoosts':
-        return '10 Yeezy Boosts'
-      case 'purse':
-        return '10 Purses'
-    }
-  }
-
+      
   const getDescriptionText = () => {
     switch (selectedSVG) {
       case 'thermos':
-        return 'Keep your drinks hot or cold all day long. Perfect for outdoor adventures!'
+        return 'Stanley Cup'
       case 'concertTickets':
-        return 'Experience live music and unforgettable moments with your favorite artists.'
+        return 'Taylor Swift concert tickets (nosebleed section)'
       case 'visionPro':
-        return 'Immerse yourself in mixed reality with Apple\'s cutting-edge headset.'
+        return 'Vision Pro'
       case 'airPods':
-        return 'Enjoy wireless audio with noise cancellation and seamless device switching.'
+        return 'Airpods'
       case 'hairDryer':
-        return 'Achieve salon-quality hair at home with this powerful and efficient hair dryer.'
+        return 'Dyson hair dryer'
       case 'book':
-        return 'Expand your knowledge and imagination with a collection of captivating reads.'
+        return 'For once, a book'
       case 'gymMembership':
-        return 'Stay fit and healthy with access to state-of-the-art fitness equipment and classes.'
+        return 'A gym membership to burn those calories'
       case 'premium':
-        return 'Unlock exclusive content and features across your favorite streaming platforms.'
+        return 'LinkedIn Premium'
       case 'yeezyBoosts':
-        return 'Step out in style with these trendy and comfortable sneakers.'
+        return 'Yeezys'
       case 'purse':
-        return 'Carry your essentials in style with these fashionable and functional purses.'
+        return 'Birkin baby'
     }
+  }
+
+  const getAffordableCount = (cost: number) => {
+    if (userMonthlySpend === null) return 0
+    return Math.floor(userMonthlySpend / cost)
   }
 
   const buttonComponents = [
     { key: 'thermos', component: Thermos },
     { key: 'concertTickets', component: ConcertTickets },
-    { key: 'visionPro', component: VisionPro },
-    { key: 'airPods', component: AirPods },
-    { key: 'hairDryer', component: HairDryer },
     { key: 'book', component: Book },
     { key: 'gymMembership', component: GymMembership },
     { key: 'premium', component: Premium },
     { key: 'yeezyBoosts', component: YeezyBoosts },
+    { key: 'airPods', component: AirPods },
+    { key: 'hairDryer', component: HairDryer },
+    { key: 'visionPro', component: VisionPro },
     { key: 'purse', component: Purse },
+  ];
+
+  const svgcosts = [
+    { key: 'thermos', cost: 45, currency: 'USD' },
+    { key: 'concertTickets', cost: 690, currency: 'USD' },
+    { key: 'book', cost: 20, currency: 'USD' },
+    { key: 'gymMembership', cost: 80, currency: 'USD' },
+    { key: 'premium', cost: 45, currency: 'USD' },
+    { key: 'yeezyBoosts', cost: 230, currency: 'USD' },
+    { key: 'airPods', cost: 130, currency: 'USD' },
+    { key: 'hairDryer', cost: 300, currency: 'USD' },
+    { key: 'visionPro', cost: 3499, currency: 'USD' },
+    { key: 'purse', cost: 10000, currency: 'USD' },
   ];
 
   return (
@@ -117,7 +131,9 @@ export default function NounsBox({ onSelect }: NounsBoxProps) {
             <div className="flex flex-col items-center justify-center mb-2 flex-grow">
               <div className="flex items-center mb-2">
                 {getSVGComponent()}
-                <span className="text-3xl font-bold ml-2">x 10</span>
+                <span className="text-3xl font-bold ml-2">
+                  x {getAffordableCount(svgcosts.find(item => item.key === selectedSVG)?.cost || 0)}
+                </span>
               </div>
               <p className="text-sm text-center text-gray-600 max-w-full">
                 {getDescriptionText()}

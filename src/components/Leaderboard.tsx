@@ -324,7 +324,7 @@ export default function Component() {
                         <Share2 className="mr-2 h-4 w-4" />
                         Invite Friends
                       </Button>
-                      <p className='text-xs text-black'>No names and numbers, we respect the broke-ode</p>
+                      <p className='text-xs text-black'>No names or numbers, we respect the broke-ode</p>
                     </div>
                   ) : (
                     "No data available"
