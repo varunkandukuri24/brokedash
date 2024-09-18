@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, ArrowUpDown, ChevronsLeft, ChevronsRight, Sh
 import { supabase } from '@/lib/supabase'
 import { useUser } from '@/contexts/UserContext'
 import Cookies from 'js-cookie'
+import { useRouter } from 'next/navigation'
 
 const categories = {
   "Broke Beginner": { range: "0-9th", emoji: "😓" },
@@ -40,6 +41,7 @@ export default function Component() {
   const [referralCode, setReferralCode] = useState<string | null>(null)
   const [initialLoadComplete, setInitialLoadComplete] = useState(false)
   const [userCategory, setUserCategory] = useState<{ name: string, emoji: string, range: string } | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     const country = Cookies.get('user_country')
@@ -191,8 +193,7 @@ export default function Component() {
   const currentUserData = brokedasherData.find(dasher => dasher.id === user?.id)
 
   const handleEdit = () => {
-    // Implement edit functionality here
-    console.log("Edit button clicked")
+    router.push('/userinput')
   }
 
   const getCountryName = (countryCode: string) => {

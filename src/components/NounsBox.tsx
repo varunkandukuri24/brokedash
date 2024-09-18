@@ -167,7 +167,7 @@ export default function NounsBox({ onSelect }: NounsBoxProps) {
           </div>
         </div>
       </div>
-      <style jsx>{`
+      <style>{`
         @keyframes textAnimation {
           0% { transform: scale(1); }
           50% { transform: scale(1.1); }
