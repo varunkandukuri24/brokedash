@@ -14,8 +14,8 @@ export function middleware(request: NextRequest) {
   }
 
   // Allow access only from the US or India
-  if (country !== 'US' && country !== 'IN') {
-    console.log('Access denied: country not US or IN');
+  if (country !== 'US') {
+    console.log('Access denied: country not US');
     return new NextResponse('Access denied', { status: 403 });
   }
 
@@ -27,7 +27,7 @@ export function middleware(request: NextRequest) {
     maxAge: 60 * 60 * 24 // 1 day
   });
 
-  console.log('Access allowed: country is US or IN');
+  console.log('Access allowed: country is US');
   return response;
 }
 
