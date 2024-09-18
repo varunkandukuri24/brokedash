@@ -174,7 +174,7 @@ function UserInputContent() {
                   type="number"
                   value={monthlySpend}
                   onChange={(e) => setMonthlySpend(e.target.value)}
-                  className="w-24 sm:w-28 md:w-32 lg:w-36 text-right bg-white border-black [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className={`w-24 sm:w-28 md:w-32 lg:w-36 text-right bg-white border-black [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${!isEditable ? 'opacity-50 cursor-not-allowed' : ''}`}
                   placeholder="0.00"
                   disabled={!isEditable}
                 />
@@ -189,9 +189,11 @@ function UserInputContent() {
                     className={`flex-1 py-2 px-2 rounded-full text-xs sm:text-sm transition-colors duration-300 ${
                       income === option.value 
                         ? 'bg-black text-orange-200' 
-                        : 'text-black hover:bg-orange-300'
+                        : isEditable
+                          ? 'text-black hover:bg-orange-300'
+                          : 'text-gray-400 cursor-not-allowed'
                     }`}
-                    onClick={() => setIncome(option.value)}
+                    onClick={() => isEditable && setIncome(option.value)}
                     disabled={!isEditable}
                   >
                     {option.label}

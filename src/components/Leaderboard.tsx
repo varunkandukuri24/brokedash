@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, ArrowUpDown, ChevronsLeft, ChevronsRight, Share2, PencilIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUser } from '@/contexts/UserContext'
+import Cookies from 'js-cookie'
+import { useRouter } from 'next/navigation'
 
 const categories = {
   "Broke Beginner": { range: "0-9th", emoji: "😓" },
@@ -29,6 +31,7 @@ type Brokedasher = {
 
 export default function Component() {
   const { user } = useUser()
+  const [userCountry, setUserCountry] = useState<string>('US')
   const [brokedasherData, setBrokedasherData] = useState<Brokedasher[]>([])
   const [sortBy, setSortBy] = useState<keyof Brokedasher>('rank')
   const [sortOrder, setSortOrder] = useState('asc')
@@ -38,6 +41,14 @@ export default function Component() {
   const [referralCode, setReferralCode] = useState<string | null>(null)
   const [initialLoadComplete, setInitialLoadComplete] = useState(false)
   const [userCategory, setUserCategory] = useState<{ name: string, emoji: string, range: string } | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    const country = Cookies.get('user_country')
+    if (country === 'IN' || country === 'US') {
+      setUserCountry(country)
+    }
+  }, [])
 
   useEffect(() => {
     if (user) {
@@ -182,8 +193,29 @@ export default function Component() {
   const currentUserData = brokedasherData.find(dasher => dasher.id === user?.id)
 
   const handleEdit = () => {
-    // Implement edit functionality here
-    console.log("Edit button clicked")
+    router.push('/userinput')
+  }
+
+  const getCountryName = (countryCode: string) => {
+    switch (countryCode) {
+      case 'US':
+        return 'United States';
+      case 'IN':
+        return 'India';
+      default:
+        return 'Global';
+    }
+  }
+
+  const getCountryFlag = (countryCode: string) => {
+    switch (countryCode) {
+      case 'US':
+        return '🇺🇸';
+      case 'IN':
+        return '🇮🇳';
+      default:
+        return '🌎';
+    }
   }
 
   return (
@@ -208,7 +240,7 @@ export default function Component() {
             }`}
             onClick={() => setLeaderboardType('global')}
           >
-            Global
+            {getCountryFlag(userCountry)} {getCountryName(userCountry)}
           </button>
           <button
             className={`flex-1 py-2 px-2 rounded-full text-xs sm:text-sm transition-colors duration-300 ${
@@ -319,14 +351,12 @@ export default function Component() {
                 <td colSpan={leaderboardType === 'global' ? 5 : 2} className="text-center py-4 text-lg font-bold text-gray-500">
                   {leaderboardType === 'friends' ? (
                     <div className="flex flex-col items-center">
-                      <p>Invite friends to view</p>
-                      <Button
-                        onClick={handleShare}
-                        className="mt-2 bg-orange-500 hover:bg-orange-600 text-white"
-                      >
+                      <p className='text-base text-black'>Invite at least 2 friends to view</p>
+                      <Button onClick={handleShare} className="mt-2 mb-4 bg-black hover:bg-white text-white hover:text-black font-bold py-2 px-4 rounded-full transition-all duration-200 ease-in-out transform hover:scale-[1.02] border-2 border-black flex items-center justify-center">
                         <Share2 className="mr-2 h-4 w-4" />
                         Invite Friends
                       </Button>
+                      <p className='text-xs text-black'>No names or numbers, we respect the broke-ode</p>
                     </div>
                   ) : (
                     "No data available"

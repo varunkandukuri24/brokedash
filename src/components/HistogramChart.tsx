@@ -119,6 +119,9 @@ export default function HistogramChart() {
 
   const percentileX = 50 + ((userPercentile ?? 0) / 100) * 400
   
+  const anchorText = userPercentile !== null && userPercentile < 50
+    ? "Your frugal ass 🤑"
+    : "Your broke ass 😮‍💨"
 
   return (
     <div className="w-full h-full flex flex-col">
@@ -128,7 +131,7 @@ export default function HistogramChart() {
             <h2 className="text-xl font-bold mb-2 text-center text-black">
               You spend more than {userPercentile}% of {totalUsers} users
             </h2>
-            <div className="flex-grow relative" style={{ minHeight: '280px' }}>
+            <div className="flex-grow relative" style={{ minHeight: '220px' }}>
               <svg
                 width="100%"
                 height="100%"
@@ -198,7 +201,7 @@ export default function HistogramChart() {
                   strokeDasharray="5 5"
                 />
 
-                {/* User's category name and emoji */}
+                {/* Updated anchor text with emojis */}
                 <text
                   x={percentileX}
                   y="20"
@@ -206,8 +209,7 @@ export default function HistogramChart() {
                   fill="black"
                   className="text-[10px] sm:text-xs font-semibold"
                 >
-                  <tspan x={percentileX - 40} textAnchor="end" dy="0.3em">{userCategory.emoji}</tspan>
-                  <tspan x={percentileX - 35} textAnchor="start" dy="0">{userCategory.name}</tspan>
+                  <tspan x={percentileX} textAnchor="middle" dy="0.3em">{anchorText}</tspan>
                 </text>
               </svg>
             </div>

@@ -70,8 +70,23 @@ export async function POST(request: Request) {
       score: calculateScore(u.monthly_spend, u.income_level)
     }));
 
+    // Sort users by score in descending order
     const sortedData = scoredData.sort((a, b) => b.score - a.score);
-    const rank = sortedData.findIndex(u => u.id === userId) + 1;
+
+    // Calculate dense rank
+    let denseRank = 1;
+    let prevScore: number | null = null;
+    const rankedData = sortedData.map((u, index) => {
+      if (u.score !== prevScore) {
+        denseRank = index + 1;
+      }
+      prevScore = u.score;
+      return { ...u, rank: denseRank };
+    });
+
+    // Find the user's rank
+    const userRanking = rankedData.find(u => u.id === userId);
+    const rank = userRanking ? userRanking.rank : rankedData.length;
 
     const categoryIndex = Math.min(Math.floor((rank - 1) / 10), categories.length - 1);
     const category = categories[categoryIndex];
