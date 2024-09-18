@@ -25,10 +25,10 @@ function UserInputContent() {
   const referralCode = searchParams.get('ref');
 
   const incomeOptions = [
-    { value: "<100k", label: "<$100k" },
-    { value: "100k-150k", label: "$100k-$150k" },
-    { value: "150k-250k", label: "$150k-$250k" },
-    { value: "250k+", label: "$250k+" },
+    { value: "<100k", label: "<$100k", maxSpend: 8333 },
+    { value: "100k-150k", label: "$100k-$150k", maxSpend: 12500 },
+    { value: "150k-250k", label: "$150k-$250k", maxSpend: 20833 },
+    { value: "250k+", label: "$250k+", maxSpend: 20833 },
   ]
 
   useEffect(() => {
@@ -147,6 +147,21 @@ function UserInputContent() {
     return referrer ? referrer.id : null;
   };
 
+  const handleMonthlySpendChange = (value: string) => {
+    const numValue = parseFloat(value);
+    const selectedIncome = incomeOptions.find(option => option.value === income);
+    
+    if (!isNaN(numValue) && selectedIncome) {
+      if (numValue <= selectedIncome.maxSpend) {
+        setMonthlySpend(value);
+      } else {
+        setMonthlySpend(selectedIncome.maxSpend.toString());
+      }
+    } else {
+      setMonthlySpend(value);
+    }
+  };
+
   return (
     <ProtectedRoute>
       <div className="bg-lightAccent min-h-screen flex items-center justify-center no-scroll">
@@ -173,7 +188,7 @@ function UserInputContent() {
                 <Input
                   type="number"
                   value={monthlySpend}
-                  onChange={(e) => setMonthlySpend(e.target.value)}
+                  onChange={(e) => handleMonthlySpendChange(e.target.value)}
                   className={`w-24 sm:w-28 md:w-32 lg:w-36 text-right bg-white border-black [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${!isEditable ? 'opacity-50 cursor-not-allowed' : ''}`}
                   placeholder="0.00"
                   disabled={!isEditable}

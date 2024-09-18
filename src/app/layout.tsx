@@ -24,7 +24,9 @@ export default function RootLayout({
           <div className="landing-page">
             <Navbar />
             <main className="landing-content">{children}</main>
-            <Footer />
+            <div className="footer-wrapper">
+              <Footer />
+            </div>
           </div>
         </UserProvider>
       </body>
