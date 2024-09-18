@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, ArrowUpDown, ChevronsLeft, ChevronsRight, Share2, PencilIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useUser } from '@/contexts/UserContext'
+import Cookies from 'js-cookie'
 
 const categories = {
   "Broke Beginner": { range: "0-9th", emoji: "😓" },
@@ -29,6 +30,7 @@ type Brokedasher = {
 
 export default function Component() {
   const { user } = useUser()
+  const [userCountry, setUserCountry] = useState<string>('US')
   const [brokedasherData, setBrokedasherData] = useState<Brokedasher[]>([])
   const [sortBy, setSortBy] = useState<keyof Brokedasher>('rank')
   const [sortOrder, setSortOrder] = useState('asc')
@@ -38,6 +40,13 @@ export default function Component() {
   const [referralCode, setReferralCode] = useState<string | null>(null)
   const [initialLoadComplete, setInitialLoadComplete] = useState(false)
   const [userCategory, setUserCategory] = useState<{ name: string, emoji: string, range: string } | null>(null)
+
+  useEffect(() => {
+    const country = Cookies.get('user_country')
+    if (country === 'IN' || country === 'US') {
+      setUserCountry(country)
+    }
+  }, [])
 
   useEffect(() => {
     if (user) {
@@ -186,6 +195,28 @@ export default function Component() {
     console.log("Edit button clicked")
   }
 
+  const getCountryName = (countryCode: string) => {
+    switch (countryCode) {
+      case 'US':
+        return 'United States';
+      case 'IN':
+        return 'India';
+      default:
+        return 'Global';
+    }
+  }
+
+  const getCountryFlag = (countryCode: string) => {
+    switch (countryCode) {
+      case 'US':
+        return '🇺🇸';
+      case 'IN':
+        return '🇮🇳';
+      default:
+        return '🌎';
+    }
+  }
+
   return (
     <div className="bg-lightAccent border-black border-4 rounded-lg shadow-2xl w-full mx-auto flex flex-col h-[calc(100vh-6rem)] overflow-hidden">
       <h2 className="text-lg font-bold text-center text-white bg-black">brokerank</h2>
@@ -208,7 +239,7 @@ export default function Component() {
             }`}
             onClick={() => setLeaderboardType('global')}
           >
-            Global
+            {getCountryFlag(userCountry)} {getCountryName(userCountry)}
           </button>
           <button
             className={`flex-1 py-2 px-2 rounded-full text-xs sm:text-sm transition-colors duration-300 ${

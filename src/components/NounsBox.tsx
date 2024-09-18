@@ -146,7 +146,7 @@ export default function NounsBox({ onSelect }: NounsBoxProps) {
                   key={key}
                   onClick={() => handleClick(key as any)}
                   variant={selectedSVG === key ? 'default' : 'outline'}
-                  className="p-1 h-10 w-10 bg-white hover:bg-gray-100 rounded-full border-2 border-black"
+                  className="p-1 h-10 w-10 hover:bg-gray-100 rounded-full border-2 border-black"
                 >
                   <SVGComponent className="w-6 h-6" />
                 </Button>
@@ -158,7 +158,7 @@ export default function NounsBox({ onSelect }: NounsBoxProps) {
                   key={key}
                   onClick={() => handleClick(key as any)}
                   variant={selectedSVG === key ? 'default' : 'outline'}
-                  className="p-1 h-10 w-10 bg-white hover:bg-gray-100 rounded-full border-2 border-black"
+                  className="p-1 h-10 w-10 hover:bg-gray-100 rounded-full border-2 border-black"
                 >
                   <SVGComponent className="w-6 h-6" />
                 </Button>
