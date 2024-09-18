@@ -131,7 +131,7 @@ function LandingContent() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
-            <div className="w-full max-w-md">
+            <div className="w-2/3 md:w-full max-w-md">
               <div className={`relative ${shake ? 'animate-shake' : ''}`}>
                 <Input
                   type="email"
@@ -146,6 +146,8 @@ function LandingContent() {
                   required
                   aria-invalid={isError}
                   aria-describedby={isError ? "email-error" : undefined}
+                  autoComplete="email" // Add this line
+                  style={{ fontSize: '16px' }} // Add this line
                 />
                 <div 
                   className={`absolute inset-0 rounded-xl pointer-events-none transition-all duration-300 ${
