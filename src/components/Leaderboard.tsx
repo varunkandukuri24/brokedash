@@ -55,16 +55,20 @@ export default function Component() {
       fetchData()
       fetchReferralCode()
       fetchUserCategory()
+      if (leaderboardType === 'global') {
+        setCurrentPage(0) // Temporarily set to 0, will be updated after data fetch
+      } else {
+        setCurrentPage(0) // Reset to first page for friends leaderboard
+      }
     }
   }, [leaderboardType, user])
 
   useEffect(() => {
-    if (brokedasherData.length > 0 && !initialLoadComplete && currentUserRank) {
+    if (leaderboardType === 'global' && brokedasherData.length > 0 && currentUserRank) {
       const userPage = Math.floor((currentUserRank - 1) / pageSize)
       setCurrentPage(userPage)
-      setInitialLoadComplete(true)
     }
-  }, [brokedasherData, currentUserRank])
+  }, [brokedasherData, currentUserRank, leaderboardType])
 
   const fetchData = async () => {
     if (!user) return
@@ -187,7 +191,7 @@ export default function Component() {
   }
 
   const pageSize = 6
-  const pageCount = Math.ceil(sortedData.length / pageSize)
+  const pageCount = Math.max(1, Math.ceil(sortedData.length / pageSize))
   const currentPageData = sortedData.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
 
   const currentUserData = brokedasherData.find(dasher => dasher.id === user?.id)
@@ -373,7 +377,7 @@ export default function Component() {
             size="sm"
             variant="outline"
             onClick={() => setCurrentPage(0)}
-            disabled={currentPage === 0}
+            disabled={currentPage === 0 || sortedData.length === 0}
             className="bg-orange-200 hover:bg-orange-300 text-orange-800 font-bold py-1 px-2 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ChevronsLeft className="h-3 w-3" />
@@ -382,21 +386,21 @@ export default function Component() {
             size="sm"
             variant="outline"
             onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-            disabled={currentPage === 0}
+            disabled={currentPage === 0 || sortedData.length === 0}
             className="bg-orange-200 hover:bg-orange-300 text-orange-800 font-bold py-1 px-2 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ChevronLeft className="h-3 w-3" />
           </Button>
         </div>
         <span className="text-orange-800 font-semibold">
-          Page {currentPage + 1} of {pageCount}
+          Page {sortedData.length > 0 ? currentPage + 1 : 0} of {pageCount}
         </span>
         <div className="flex gap-1">
           <Button
             size="sm"
             variant="outline"
             onClick={() => setCurrentPage(prev => Math.min(pageCount - 1, prev + 1))}
-            disabled={currentPage === pageCount - 1}
+            disabled={currentPage === pageCount - 1 || sortedData.length === 0}
             className="bg-orange-200 hover:bg-orange-300 text-orange-800 font-bold py-1 px-2 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ChevronRight className="h-3 w-3" />
@@ -405,7 +409,7 @@ export default function Component() {
             size="sm"
             variant="outline"
             onClick={() => setCurrentPage(pageCount - 1)}
-            disabled={currentPage === pageCount - 1}
+            disabled={currentPage === pageCount - 1 || sortedData.length === 0}
             className="bg-orange-200 hover:bg-orange-300 text-orange-800 font-bold py-1 px-2 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ChevronsRight className="h-3 w-3" />
