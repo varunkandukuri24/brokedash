@@ -60,9 +60,11 @@ function LandingContent() {
       }, 2000);
     } else {
       setIsSubmitting(true);
-      const redirectUrl = process.env.NODE_ENV === 'production'
+      const redirectUrl = process.env.NEXT_PUBLIC_APP_ENV === 'production'
         ? process.env.NEXT_PUBLIC_REDIRECT_URL_PROD
         : process.env.NEXT_PUBLIC_REDIRECT_URL_DEV;
+
+      console.log('Redirect URL:', redirectUrl); // For debugging
 
       const { error } = await supabase.auth.signInWithOtp({ 
         email,
