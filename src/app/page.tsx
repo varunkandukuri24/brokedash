@@ -69,7 +69,7 @@ function LandingContent() {
       const { error } = await supabase.auth.signInWithOtp({ 
         email,
         options: {
-          emailRedirectTo: `${redirectUrl}${referralCode ? `?ref=${referralCode}` : ''}`,
+          emailRedirectTo: redirectUrl ? `${redirectUrl}${referralCode ? `?ref=${referralCode}` : ''}` : undefined,
         },
       });
       if (error) {
