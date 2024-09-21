@@ -3,20 +3,20 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useUser();
+  const { user, loading, session } = useUser();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !session) {
       router.push('/');
     }
-  }, [user, loading, router]);
+  }, [session, loading, router]);
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  return user ? <>{children}</> : null;
+  return session ? <>{children}</> : null;
 };
 
 export default ProtectedRoute;
