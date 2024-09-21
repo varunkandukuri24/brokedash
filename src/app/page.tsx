@@ -32,6 +32,7 @@ function LandingContent() {
   const [shake, setShake] = React.useState(false);
   const [emailSent, setEmailSent] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState('');
   const searchParams = useSearchParams();
   const referralCode = searchParams.get('ref');
 
@@ -74,10 +75,16 @@ function LandingContent() {
       if (error) {
         setIsError(true);
         setShake(true);
+        if (error.status === 429) {
+          setErrorMessage("Too many concurrent users, try again later.");
+        } else {
+          setErrorMessage("An error occurred. Please try again.");
+        }
         setTimeout(() => {
           setShake(false);
           setEmail('');
           setIsError(false);
+          setErrorMessage("");
         }, 2000);
         setIsSubmitting(false);
       } else {
@@ -165,7 +172,7 @@ function LandingContent() {
               </div>
               {isError && (
                 <p id="email-error" className="mt-2 text-red-500 text-sm">
-                  Please enter a valid email address
+                  {errorMessage || "Please enter a valid email address"}
                 </p>
               )}
             </div>
