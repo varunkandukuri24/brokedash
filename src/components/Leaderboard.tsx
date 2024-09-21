@@ -7,16 +7,16 @@ import Cookies from 'js-cookie'
 import { useRouter } from 'next/navigation'
 
 const categories = {
-  "Broke Beginner": { range: "0-9th", emoji: "😓" },
-  "Frugal Freshman": { range: "10-19th", emoji: "🐣" },
-  "Savvy Sophomore": { range: "20-29th", emoji: "📚" },
-  "Judicious Junior": { range: "30-39th", emoji: "🤔" },
-  "Senior Saver": { range: "40-49th", emoji: "💼" },
-  "Balanced Bachelor": { range: "50-59th", emoji: "⚖️" },
-  "Master of Moderation": { range: "60-69th", emoji: "🧘" },
-  "Doctorate in Dollars": { range: "70-79th", emoji: "🎓" },
-  "Professor of Prosperity": { range: "80-89th", emoji: "🏆" },
-  "Wealth Wizard": { range: "90-99th", emoji: "🧙" }
+  "Broke Beginner": { range: "90-99th", emoji: "😓" },
+  "Frugal Freshman": { range: "80-89th", emoji: "🐣" },
+  "Savvy Sophomore": { range: "70-79th", emoji: "📚" },
+  "Judicious Junior": { range: "60-69th", emoji: "🤔" },
+  "Senior Saver": { range: "50-59th", emoji: "💼" },
+  "Balanced Bachelor": { range: "40-49th", emoji: "⚖️" },
+  "Master of Moderation": { range: "30-39th", emoji: "🧘" },
+  "Doctorate in Dollars": { range: "20-29th", emoji: "🎓" },
+  "Professor of Prosperity": { range: "10-19th", emoji: "🏆" },
+  "Wealth Wizard": { range: "0-9th", emoji: "🧙" }
 };
 
 type Brokedasher = {
