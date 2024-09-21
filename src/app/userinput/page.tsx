@@ -164,7 +164,7 @@ function UserInputContent() {
 
   return (
     <ProtectedRoute>
-      <div className="bg-lightAccent min-h-screen flex items-center justify-center no-scroll">
+      <div className="bg-lightAccent min-h-screen flex flex-col items-center justify-center no-scroll">
         <div className="bg-orange-200 border-black border-4 rounded-lg shadow-2xl w-[95%] sm:w-4/5 md:w-3/5 lg:w-2/5 xl:w-2/3 mx-auto flex flex-col relative">
           <div className="bg-black text-white p-2 flex items-center justify-between">
             <div className="w-8" /> {/* Spacer to balance the edit button */}
@@ -182,7 +182,7 @@ function UserInputContent() {
           </div>
           <div className="flex-grow overflow-auto flex flex-col p-4">
             <div className="flex items-center justify-between mb-2 pb-4 border-b-2 border-black">
-              <span className="text-black font-semibold text-sm sm:text-base md:text-lg lg:text-xl">1 x food you bought instead of groceries</span>
+              <span className="text-black font-semibold text-sm sm:text-base md:text-lg lg:text-xl">1 x Food you bought instead of groceries</span>
               <div className="flex items-center">
                 <span className="mr-2 text-black font-semibold">$</span>
                 <Input
@@ -225,6 +225,7 @@ function UserInputContent() {
             </Button>
           </div>
         </div>
+        <p className="text-black text-sm text-center mt-4">You will remain anonymous. 🤫</p>
       </div>
     </ProtectedRoute>
   )

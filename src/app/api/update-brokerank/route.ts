@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     const userRanking = rankedData.find(u => u.id === userId);
     const rank = userRanking ? userRanking.rank : rankedData.length;
 
-    const categoryIndex = Math.min(Math.floor((rank - 1) / 10), categories.length - 1);
+    const categoryIndex = Math.min(Math.floor(rank / 10), categories.length - 1);
     const category = categories[categoryIndex];
 
     const brokeranker = {
