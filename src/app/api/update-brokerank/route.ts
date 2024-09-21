@@ -2,16 +2,16 @@ import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
 const categories = [
-  { name: "Broke Beginner", range: "90-99th", emoji: "😓" },
-  { name: "Frugal Freshman", range: "80-89th", emoji: "🐣" },
-  { name: "Savvy Sophomore", range: "70-79th", emoji: "📚" },
-  { name: "Judicious Junior", range: "60-69th", emoji: "🤔" },
-  { name: "Senior Saver", range: "50-59th", emoji: "💼" },
-  { name: "Balanced Bachelor", range: "40-49th", emoji: "⚖️" },
-  { name: "Master of Moderation", range: "30-39th", emoji: "🧘" },
-  { name: "Doctorate in Dollars", range: "20-29th", emoji: "🎓" },
-  { name: "Professor of Prosperity", range: "10-19th", emoji: "🏆" },
-  { name: "Wealth Wizard", range: "0-9th", emoji: "🧙" }
+  { name: "Splurge Specialist", range: "90-99th", emoji: "💸" },
+  { name: "Impulse Investor", range: "80-89th", emoji: "🛍️" },
+  { name: "Carefree Cashburner", range: "70-79th", emoji: "🔥" },
+  { name: "Whimsical Wallet-Drainer", range: "60-69th", emoji: "🎭" },
+  { name: "Middling Money Manager", range: "50-59th", emoji: "➗" },
+  { name: "Prudent Penny-Pincher", range: "40-49th", emoji: "🐷" },
+  { name: "Savvy Saver", range: "30-39th", emoji: "🧠" },
+  { name: "Frugal Financier", range: "20-29th", emoji: "📊" },
+  { name: "Thrift Theorist", range: "10-19th", emoji: "🧮" },
+  { name: "Miserly Maestro", range: "0-9th", emoji: "🧙" }
 ];
 
 const calculateScore = (monthlySpend: number, incomeLevel: string): number => {

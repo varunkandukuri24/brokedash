@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { AirPods, ConcertTickets, HairDryer, Thermos, VisionPro, Book, GymMembership, Premium, YeezyBoosts, Purse } from '@/assets/nounssvgs'
 import { useUser } from '@/contexts/UserContext'
 import { supabase } from '@/lib/supabase'
+import { posthog } from '@/lib/posthog'
 
 interface NounsBoxProps {
   onSelect: (noun: string | null) => void;
@@ -37,6 +38,7 @@ export default function NounsBox({ onSelect }: NounsBoxProps) {
   const handleClick = (svg: 'thermos' | 'concertTickets' | 'visionPro' | 'airPods' | 'hairDryer' | 'book' | 'gymMembership' | 'premium' | 'yeezyBoosts' | 'purse') => {
     setSelectedSVG(svg)
     onSelect(svg)
+    posthog.capture('nouns_box_item_selected', { selected_item: svg });
   }
 
   const getSVGComponent = () => {

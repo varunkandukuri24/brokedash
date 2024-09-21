@@ -8,19 +8,6 @@ interface HistogramChartProps {
   userId: string
 }
 
-const categories = [
-  { name: "Broke Beginner", range: "0-9th", emoji: "😓" },
-  { name: "Frugal Freshman", range: "10-19th", emoji: "🐣" },
-  { name: "Savvy Sophomore", range: "20-29th", emoji: "📚" },
-  { name: "Judicious Junior", range: "30-39th", emoji: "🤔" },
-  { name: "Senior Saver", range: "40-49th", emoji: "💼" },
-  { name: "Balanced Bachelor", range: "50-59th", emoji: "⚖️" },
-  { name: "Master of Moderation", range: "60-69th", emoji: "🧘" },
-  { name: "Doctorate in Dollars", range: "70-79th", emoji: "🎓" },
-  { name: "Professor of Prosperity", range: "80-89th", emoji: "🏆" },
-  { name: "Wealth Wizard", range: "90-99th", emoji: "🧙" }
-]
-
 export default function HistogramChart() {
   const { user } = useUser();
   const [userPercentile, setUserPercentile] = useState<number | null>(null)

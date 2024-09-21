@@ -5,18 +5,19 @@ import { supabase } from '@/lib/supabase'
 import { useUser } from '@/contexts/UserContext'
 import Cookies from 'js-cookie'
 import { useRouter } from 'next/navigation'
+import { posthog } from '@/lib/posthog';
 
 const categories = {
-  "Broke Beginner": { range: "90-99th", emoji: "😓" },
-  "Frugal Freshman": { range: "80-89th", emoji: "🐣" },
-  "Savvy Sophomore": { range: "70-79th", emoji: "📚" },
-  "Judicious Junior": { range: "60-69th", emoji: "🤔" },
-  "Senior Saver": { range: "50-59th", emoji: "💼" },
-  "Balanced Bachelor": { range: "40-49th", emoji: "⚖️" },
-  "Master of Moderation": { range: "30-39th", emoji: "🧘" },
-  "Doctorate in Dollars": { range: "20-29th", emoji: "🎓" },
-  "Professor of Prosperity": { range: "10-19th", emoji: "🏆" },
-  "Wealth Wizard": { range: "0-9th", emoji: "🧙" }
+  "Splurge Specialist": { range: "90-99th", emoji: "💸" },
+  "Impulse Investor": { range: "80-89th", emoji: "🛍️" },
+  "Carefree Cashburner": { range: "70-79th", emoji: "🔥" },
+  "Whimsical Wallet-Drainer": { range: "60-69th", emoji: "🎭" },
+  "Middling Money Manager": { range: "50-59th", emoji: "➗" },
+  "Prudent Penny-Pincher": { range: "40-49th", emoji: "🐷" },
+  "Savvy Saver": { range: "30-39th", emoji: "🧠" },
+  "Frugal Financier": { range: "20-29th", emoji: "📊" },
+  "Thrift Theorist": { range: "10-19th", emoji: "🧮" },
+  "Miserly Maestro": { range: "0-9th", emoji: "🧙" }
 };
 
 type Brokedasher = {
@@ -222,6 +223,14 @@ export default function Component() {
     }
   }
 
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    posthog.capture('leaderboard_page_changed', { 
+      new_page: newPage + 1, 
+      total_pages: pageCount 
+    });
+  };
+
   return (
     <div className="bg-lightAccent border-black border-4 rounded-lg shadow-2xl w-full mx-auto flex flex-col h-[calc(100vh-6rem)] overflow-hidden">
       <h2 className="text-lg font-bold text-center text-white bg-black">brokerank</h2>
@@ -376,7 +385,7 @@ export default function Component() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setCurrentPage(0)}
+            onClick={() => handlePageChange(0)}
             disabled={currentPage === 0 || sortedData.length === 0}
             className="bg-orange-200 hover:bg-orange-300 text-orange-800 font-bold py-1 px-2 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -385,7 +394,7 @@ export default function Component() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+            onClick={() => handlePageChange(Math.max(0, currentPage - 1))}
             disabled={currentPage === 0 || sortedData.length === 0}
             className="bg-orange-200 hover:bg-orange-300 text-orange-800 font-bold py-1 px-2 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -399,7 +408,7 @@ export default function Component() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setCurrentPage(prev => Math.min(pageCount - 1, prev + 1))}
+            onClick={() => handlePageChange(Math.min(pageCount - 1, currentPage + 1))}
             disabled={currentPage === pageCount - 1 || sortedData.length === 0}
             className="bg-orange-200 hover:bg-orange-300 text-orange-800 font-bold py-1 px-2 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -408,7 +417,7 @@ export default function Component() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setCurrentPage(pageCount - 1)}
+            onClick={() => handlePageChange(pageCount - 1)}
             disabled={currentPage === pageCount - 1 || sortedData.length === 0}
             className="bg-orange-200 hover:bg-orange-300 text-orange-800 font-bold py-1 px-2 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
