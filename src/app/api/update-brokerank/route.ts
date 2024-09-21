@@ -2,22 +2,27 @@ import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
 const categories = [
-  { name: "Broke Beginner", range: "0-9th", emoji: "😓" },
-  { name: "Frugal Freshman", range: "10-19th", emoji: "🐣" },
-  { name: "Savvy Sophomore", range: "20-29th", emoji: "📚" },
-  { name: "Judicious Junior", range: "30-39th", emoji: "🤔" },
-  { name: "Senior Saver", range: "40-49th", emoji: "💼" },
-  { name: "Balanced Bachelor", range: "50-59th", emoji: "⚖️" },
-  { name: "Master of Moderation", range: "60-69th", emoji: "🧘" },
-  { name: "Doctorate in Dollars", range: "70-79th", emoji: "🎓" },
-  { name: "Professor of Prosperity", range: "80-89th", emoji: "🏆" },
-  { name: "Wealth Wizard", range: "90-99th", emoji: "🧙" }
+  { name: "Splurge Specialist", range: "90-99th", emoji: "💸" },
+  { name: "Impulse Investor", range: "80-89th", emoji: "🛍️" },
+  { name: "Carefree Cashburner", range: "70-79th", emoji: "🔥" },
+  { name: "Whimsical Wallet-Drainer", range: "60-69th", emoji: "🎭" },
+  { name: "Middling Money Manager", range: "50-59th", emoji: "➗" },
+  { name: "Prudent Penny-Pincher", range: "40-49th", emoji: "🐷" },
+  { name: "Savvy Saver", range: "30-39th", emoji: "🧠" },
+  { name: "Frugal Financier", range: "20-29th", emoji: "📊" },
+  { name: "Thrift Theorist", range: "10-19th", emoji: "🧮" },
+  { name: "Miserly Maestro", range: "0-9th", emoji: "🧙" }
 ];
 
-const calculateDaysTillBroke = (incomeLevel: string, monthlySpend: number) => {
-  const annualIncome = getIncomeValue(incomeLevel);
+const calculateScore = (monthlySpend: number, incomeLevel: string): number => {
+  const income = getIncomeValue(incomeLevel);
+  const spendRatio = monthlySpend / (income / 12);
+  const incomeMultiplier = 1 + (1 - income / 300000);
+  return spendRatio * incomeMultiplier;
+};
 
-  const monthlySavings = (annualIncome / 12) - monthlySpend;
+const calculateDaysTillBroke = (incomeLevel: string, monthlySpend: number): number => {
+  const annualIncome = getIncomeValue(incomeLevel);
   return Math.max(0, Math.floor((annualIncome / 365) / (monthlySpend / 30)));
 };
 
@@ -31,85 +36,60 @@ const getIncomeValue = (incomeLevel: string): number => {
   }
 };
 
-const calculateScore = (monthlySpend: number, incomeLevel: string): number => {
-  const income = getIncomeValue(incomeLevel);
-  const spendRatio = monthlySpend / (income / 12);
-  const incomeMultiplier = 1 + (1 - income / 300000);
-  return spendRatio * incomeMultiplier;
-};
-
 export const runtime = 'edge';
 
 export async function POST(request: Request) {
   try {
-    const { userId } = await request.json();
-
-    if (!userId) {
-      return NextResponse.json({ message: 'User ID is required' }, { status: 400 });
-    }
-
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('id, income_level, monthly_spend')
-      .eq('id', userId)
-      .single();
-
-    if (userError) throw userError;
-
-    const score = calculateScore(user.monthly_spend, user.income_level);
-
-    // Fetch all users to calculate rank
+    // Fetch all users
     const { data: allUsers, error: allUsersError } = await supabase
       .from('users')
       .select('id, income_level, monthly_spend');
 
     if (allUsersError) throw allUsersError;
 
-    const scoredData = allUsers.map(u => ({
-      ...u,
-      score: calculateScore(u.monthly_spend, u.income_level)
+    // Calculate scores and rank users
+    const scoredUsers = allUsers.map(user => ({
+      ...user,
+      score: calculateScore(user.monthly_spend, user.income_level)
     }));
 
-    // Sort users by score in descending order
-    const sortedData = scoredData.sort((a, b) => b.score - a.score);
+    const rankedUsers = scoredUsers.sort((a, b) => b.score - a.score)
+      .map((user, index) => ({ ...user, rank: index + 1 }));
 
-    // Calculate dense rank
-    let denseRank = 1;
-    let prevScore: number | null = null;
-    const rankedData = sortedData.map((u, index) => {
-      if (u.score !== prevScore) {
-        denseRank = index + 1;
-      }
-      prevScore = u.score;
-      return { ...u, rank: denseRank };
+    const totalUsers = rankedUsers.length;
+
+    // Categorize users
+    const categorizedUsers = rankedUsers.map(user => {
+      const percentile = (user.rank / totalUsers) * 100;
+      const categoryIndex = Math.min(Math.floor(percentile / 10), categories.length - 1);
+      return {
+        ...user,
+        category: categories[categoryIndex].name,
+        emoji: categories[categoryIndex].emoji,
+        days_till_broke: calculateDaysTillBroke(user.income_level, user.monthly_spend)
+      };
     });
 
-    // Find the user's rank
-    const userRanking = rankedData.find(u => u.id === userId);
-    const rank = userRanking ? userRanking.rank : rankedData.length;
-
-    const categoryIndex = Math.min(Math.floor(rank / 10), categories.length - 1);
-    const category = categories[categoryIndex];
-
-    const brokeranker = {
-      id: user.id,
-      rank,
-      days_till_broke: calculateDaysTillBroke(user.income_level, user.monthly_spend),
-      category: category.name,
-      emoji: category.emoji,
-      income_level: user.income_level,
-      monthly_spend: user.monthly_spend,
-      updated_at: new Date().toISOString()
-    };
-
-    const { data: upsertedData, error: upsertError } = await supabase
+    // Update brokerank table
+    const { error: upsertError } = await supabase
       .from('brokerank')
-      .upsert(brokeranker, { onConflict: 'id' })
-      .select();
+      .upsert(
+        categorizedUsers.map(user => ({
+          id: user.id,
+          rank: user.rank,
+          days_till_broke: user.days_till_broke,
+          category: user.category,
+          emoji: user.emoji,
+          income_level: user.income_level,
+          monthly_spend: user.monthly_spend,
+          updated_at: new Date().toISOString()
+        })),
+        { onConflict: 'id' }
+      );
 
     if (upsertError) throw upsertError;
 
-    return NextResponse.json({ message: 'Brokerank updated successfully', data: upsertedData[0] }, { status: 200 });
+    return NextResponse.json({ message: 'Brokerank updated successfully' }, { status: 200 });
   } catch (error) {
     console.error('Error updating brokerank:', error);
     return NextResponse.json({ message: 'Error updating brokerank', error: JSON.stringify(error) }, { status: 500 });

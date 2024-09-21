@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from 'uuid'
 import crypto from 'crypto'
 import { useSearchParams } from 'next/navigation'
 import { PencilIcon } from 'lucide-react'
+import { posthog } from '@/lib/posthog';
 
 function UserInputContent() {
   const router = useRouter()
@@ -84,6 +85,12 @@ function UserInputContent() {
 
     setIsLoading(true);
 
+    // Capture event when user hits "Go"
+    posthog.capture('submit_user_input', { 
+      monthly_spend: parseFloat(monthlySpend),
+      income_level: income
+    });
+
     try {
       if (userExists) {
         // Update existing user data
@@ -154,8 +161,12 @@ function UserInputContent() {
     if (!isNaN(numValue) && selectedIncome) {
       if (numValue <= selectedIncome.maxSpend) {
         setMonthlySpend(value);
+        // Capture event when user types monthly spend
+        posthog.capture('monthly_spend_input', { value: numValue });
       } else {
         setMonthlySpend(selectedIncome.maxSpend.toString());
+        // Capture event when max spend is reached
+        posthog.capture('monthly_spend_max_reached', { value: selectedIncome.maxSpend });
       }
     } else {
       setMonthlySpend(value);
@@ -192,6 +203,7 @@ function UserInputContent() {
                   className={`w-24 sm:w-28 md:w-32 lg:w-36 text-right bg-white border-black [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${!isEditable ? 'opacity-50 cursor-not-allowed' : ''}`}
                   placeholder="0.00"
                   disabled={!isEditable}
+                  style={{ fontSize: '16px', touchAction: 'manipulation' }}
                 />
               </div>
             </div>

@@ -115,19 +115,19 @@ function LandingContent() {
           <>
             <p className="text-xl mb-8 text-black">👋 Hi, {user.email}</p>
             <div className="flex flex-col items-center gap-4">
-            <Button 
-              onClick={handleCompareNow}
-              className="bg-black border-2 border-black text-white text-xl p-6 rounded-full transition hover:scale-[1.02] hover:text-black hover:bg-white duration-300 shadow-[0px_4px_10px_rgba(0,0,0,0.5)]"
+              <Button 
+                onClick={handleCompareNow}
+                className="bg-black border-2 border-black text-white text-xl p-6 rounded-full transition hover:scale-[1.02] hover:text-black hover:bg-white duration-300 shadow-[0px_4px_10px_rgba(0,0,0,0.5)]"
               >
-              Compare Now
-            </Button>
-            <a 
-              onClick={handleSignOut}
-              className="font-bold text-black underline cursor-pointer"
+                Compare Now
+              </Button>
+              <a 
+                onClick={handleSignOut}
+                className="font-bold text-black underline cursor-pointer"
               >
-              Sign Out
-            </a>
-              </div>
+                Sign Out
+              </a>
+            </div>
           </>
         ) : emailSent ? (
           <div className="flex flex-col items-center gap-4">

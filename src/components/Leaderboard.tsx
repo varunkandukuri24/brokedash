@@ -5,18 +5,19 @@ import { supabase } from '@/lib/supabase'
 import { useUser } from '@/contexts/UserContext'
 import Cookies from 'js-cookie'
 import { useRouter } from 'next/navigation'
+import { posthog } from '@/lib/posthog';
 
 const categories = {
-  "Broke Beginner": { range: "0-9th", emoji: "😓" },
-  "Frugal Freshman": { range: "10-19th", emoji: "🐣" },
-  "Savvy Sophomore": { range: "20-29th", emoji: "📚" },
-  "Judicious Junior": { range: "30-39th", emoji: "🤔" },
-  "Senior Saver": { range: "40-49th", emoji: "💼" },
-  "Balanced Bachelor": { range: "50-59th", emoji: "⚖️" },
-  "Master of Moderation": { range: "60-69th", emoji: "🧘" },
-  "Doctorate in Dollars": { range: "70-79th", emoji: "🎓" },
-  "Professor of Prosperity": { range: "80-89th", emoji: "🏆" },
-  "Wealth Wizard": { range: "90-99th", emoji: "🧙" }
+  "Splurge Specialist": { range: "90-99th", emoji: "💸" },
+  "Impulse Investor": { range: "80-89th", emoji: "🛍️" },
+  "Carefree Cashburner": { range: "70-79th", emoji: "🔥" },
+  "Whimsical Wallet-Drainer": { range: "60-69th", emoji: "🎭" },
+  "Middling Money Manager": { range: "50-59th", emoji: "➗" },
+  "Prudent Penny-Pincher": { range: "40-49th", emoji: "🐷" },
+  "Savvy Saver": { range: "30-39th", emoji: "🧠" },
+  "Frugal Financier": { range: "20-29th", emoji: "📊" },
+  "Thrift Theorist": { range: "10-19th", emoji: "🧮" },
+  "Miserly Maestro": { range: "0-9th", emoji: "🧙" }
 };
 
 type Brokedasher = {
@@ -42,6 +43,7 @@ export default function Component() {
   const [initialLoadComplete, setInitialLoadComplete] = useState(false)
   const [userCategory, setUserCategory] = useState<{ name: string, emoji: string, range: string } | null>(null)
   const router = useRouter()
+  const [friendCount, setFriendCount] = useState(0);
 
   useEffect(() => {
     const country = Cookies.get('user_country')
@@ -62,6 +64,28 @@ export default function Component() {
       }
     }
   }, [leaderboardType, user])
+
+  useEffect(() => {
+    if (user && leaderboardType === 'friends') {
+      fetchFriendCount();
+    }
+  }, [leaderboardType, user]);
+
+  const fetchFriendCount = async () => {
+    if (!user) return;
+
+    const { count, error } = await supabase
+      .from('friendships')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error fetching friend count:', error);
+      return;
+    }
+
+    setFriendCount(count || 0);
+  };
 
   useEffect(() => {
     if (leaderboardType === 'global' && brokedasherData.length > 0 && currentUserRank) {
@@ -222,6 +246,14 @@ export default function Component() {
     }
   }
 
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    posthog.capture('leaderboard_page_changed', { 
+      new_page: newPage + 1, 
+      total_pages: pageCount 
+    });
+  };
+
   return (
     <div className="bg-lightAccent border-black border-4 rounded-lg shadow-2xl w-full mx-auto flex flex-col h-[calc(100vh-6rem)] overflow-hidden">
       <h2 className="text-lg font-bold text-center text-white bg-black">brokerank</h2>
@@ -308,65 +340,73 @@ export default function Component() {
             </tr>
           </thead>
           <tbody className="flex-grow">
-            {brokedasherData.length > 0 ? (
-              currentPageData.map((dasher) => (
-                <tr 
-                  key={dasher.id} 
-                  className={`
-                    ${dasher.id === user?.id 
-                      ? 'bg-black text-white' 
-                      : 'hover:bg-orange-50 border-b-2 bg-blue-200 border-black'
-                    } 
-                    transition-all duration-200
-                  `}
-                >
-                  <td className="px-1 py-2 text-center font-medium truncate">{dasher.rank}</td>
-                  <td className="px-1 py-2 text-center">
-                    <div className="flex items-center gap-1 justify-center">
-                      <span className="text-base">{dasher.emoji}</span>
-                      <span className="truncate text-[10px] sm:text-xs">{dasher.category}</span>
-                    </div>
-                  </td>
-                  {leaderboardType === 'global' && (
-                    <>
-                      <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{dasher.days_till_broke}</td>
-                      <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{dasher.income_level}</td>
-                      <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">
-                        <div className="flex items-center justify-center">
-                          ${dasher.monthly_spend.toLocaleString()}
-                          {dasher.id === user?.id && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={handleEdit}
-                              className="ml-1 p-0 h-4 w-4"
-                            >
-                              <PencilIcon className="h-3 w-3" />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </>
-                  )}
-                </tr>
-              ))
-            ) : (
+            {leaderboardType === 'friends' && friendCount < 2 ? (
               <tr>
-                <td colSpan={leaderboardType === 'global' ? 5 : 2} className="text-center py-4 text-lg font-bold text-gray-500">
-                  {leaderboardType === 'friends' ? (
-                    <div className="flex flex-col items-center">
+                <td colSpan={2} className="text-center py-4 text-lg font-bold text-gray-500">
+                  <div className="flex flex-col items-center">
+                    {friendCount === 0 ? (
                       <p className='text-base text-black'>Invite at least 2 friends to view</p>
-                      <Button onClick={handleShare} className="mt-2 mb-4 bg-black hover:bg-white text-white hover:text-black font-bold py-2 px-4 rounded-full transition-all duration-200 ease-in-out transform hover:scale-[1.02] border-2 border-black flex items-center justify-center">
-                        <Share2 className="mr-2 h-4 w-4" />
-                        Invite Friends
-                      </Button>
-                      <p className='text-xs text-black'>No names or numbers, we respect the broke-ode</p>
-                    </div>
-                  ) : (
-                    "No data available"
-                  )}
+                    ) : (
+                      <p className='text-base text-black'>Invite 1 more friend to view</p>
+                    )}
+                    <Button onClick={handleShare} className="mt-2 mb-4 bg-black hover:bg-white text-white hover:text-black font-bold py-2 px-4 rounded-full transition-all duration-200 ease-in-out transform hover:scale-[1.02] border-2 border-black flex items-center justify-center">
+                      <Share2 className="mr-2 h-4 w-4" />
+                      Invite Friends
+                    </Button>
+                    <p className='text-xs text-black'>No names or numbers, we respect the broke-ode</p>
+                  </div>
                 </td>
               </tr>
+            ) : (
+              brokedasherData.length > 0 ? (
+                currentPageData.map((dasher) => (
+                  <tr 
+                    key={dasher.id} 
+                    className={`
+                      ${dasher.id === user?.id 
+                        ? 'bg-black text-white' 
+                        : 'hover:bg-orange-50 border-b-2 bg-blue-200 border-black'
+                      } 
+                      transition-all duration-200
+                    `}
+                  >
+                    <td className="px-1 py-2 text-center font-medium truncate">{dasher.rank}</td>
+                    <td className="px-1 py-2 text-center">
+                      <div className="flex items-center gap-1 justify-center">
+                        <span className="text-base">{dasher.emoji}</span>
+                        <span className="truncate text-[10px] sm:text-xs">{dasher.category}</span>
+                      </div>
+                    </td>
+                    {leaderboardType === 'global' && (
+                      <>
+                        <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{dasher.days_till_broke}</td>
+                        <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">{dasher.income_level}</td>
+                        <td className="px-1 py-2 text-center truncate text-[10px] sm:text-xs">
+                          <div className="flex items-center justify-center">
+                            ${dasher.monthly_spend.toLocaleString()}
+                            {dasher.id === user?.id && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleEdit}
+                                className="ml-1 p-0 h-4 w-4"
+                              >
+                                <PencilIcon className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={leaderboardType === 'global' ? 5 : 2} className="text-center py-4 text-lg font-bold text-gray-500">
+                    No data available
+                  </td>
+                </tr>
+              )
             )}
           </tbody>
         </table>
@@ -376,7 +416,7 @@ export default function Component() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setCurrentPage(0)}
+            onClick={() => handlePageChange(0)}
             disabled={currentPage === 0 || sortedData.length === 0}
             className="bg-orange-200 hover:bg-orange-300 text-orange-800 font-bold py-1 px-2 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -385,7 +425,7 @@ export default function Component() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+            onClick={() => handlePageChange(Math.max(0, currentPage - 1))}
             disabled={currentPage === 0 || sortedData.length === 0}
             className="bg-orange-200 hover:bg-orange-300 text-orange-800 font-bold py-1 px-2 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -399,7 +439,7 @@ export default function Component() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setCurrentPage(prev => Math.min(pageCount - 1, prev + 1))}
+            onClick={() => handlePageChange(Math.min(pageCount - 1, currentPage + 1))}
             disabled={currentPage === pageCount - 1 || sortedData.length === 0}
             className="bg-orange-200 hover:bg-orange-300 text-orange-800 font-bold py-1 px-2 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -408,7 +448,7 @@ export default function Component() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setCurrentPage(pageCount - 1)}
+            onClick={() => handlePageChange(pageCount - 1)}
             disabled={currentPage === pageCount - 1 || sortedData.length === 0}
             className="bg-orange-200 hover:bg-orange-300 text-orange-800 font-bold py-1 px-2 rounded-full transition-all duration-200 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
           >
