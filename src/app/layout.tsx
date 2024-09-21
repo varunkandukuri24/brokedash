@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { UserProvider } from "@/contexts/UserContext";
 import Footer from '@/components/Footer';
+import { CustomPostHogProvider } from '@/components/CustomPostHogProvider';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,15 +21,17 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
-        <UserProvider>
-          <div className="landing-page">
-            <Navbar />
-            <main className="landing-content">{children}</main>
-            <div className="footer-wrapper">
-              <Footer />
+        <CustomPostHogProvider>
+          <UserProvider>
+            <div className="landing-page">
+              <Navbar />
+              <main className="landing-content">{children}</main>
+              <div className="footer-wrapper">
+                <Footer />
+              </div>
             </div>
-          </div>
-        </UserProvider>
+          </UserProvider>
+        </CustomPostHogProvider>
       </body>
     </html>
   );
