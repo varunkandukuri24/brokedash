@@ -56,7 +56,7 @@ const PrivacyPolicy: React.FC = () => {
           <p className="mb-4">We use cookies to store your country information for app functionality.</p>
 
           <h2 className="text-2xl font-semibold mb-4">8. Third-Party Services</h2>
-          <p className="mb-4">We use Vercel for hosting and deployment. Please refer to Vercel's privacy policy for information on how they handle hosting data.</p>
+          <p className="mb-4">We use Vercel for hosting and deployment. Please refer to Vercel&apos;s privacy policy for information on how they handle hosting data.</p>
 
           <h2 className="text-2xl font-semibold mb-4">9. Changes to This Policy</h2>
           <p className="mb-4">We may update this policy from time to time. We will notify you of any significant changes by posting the new policy on this page.</p>

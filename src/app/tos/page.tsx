@@ -44,7 +44,7 @@ const TermsOfService: React.FC = () => {
           <p className="mb-4">In no event shall brokedash, nor its affiliated creators, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your access to or use of or inability to access or use the Service.</p>
 
           <h2 className="text-2xl font-semibold mb-4">9. Changes to Terms</h2>
-          <p className="mb-4">We reserve the right to modify or replace these Terms at any time. If a revision is material, we will provide at least 30 days' notice prior to any new terms taking effect.</p>
+          <p className="mb-4">We reserve the right to modify or replace these Terms at any time. If a revision is material, we will provide at least 7 days notice prior to any new terms taking effect.</p>
 
           <h2 className="text-2xl font-semibold mb-4">10. Governing Law</h2>
           <p className="mb-4">These Terms shall be governed and construed in accordance with the laws of the United States, without regard to its conflict of law provisions.</p>
