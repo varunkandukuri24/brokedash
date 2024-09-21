@@ -192,6 +192,7 @@ function UserInputContent() {
                   className={`w-24 sm:w-28 md:w-32 lg:w-36 text-right bg-white border-black [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${!isEditable ? 'opacity-50 cursor-not-allowed' : ''}`}
                   placeholder="0.00"
                   disabled={!isEditable}
+                  style={{ fontSize: '16px', touchAction: 'manipulation' }}
                 />
               </div>
             </div>
