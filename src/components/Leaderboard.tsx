@@ -280,15 +280,15 @@ export default function Component() {
                 </Button>
               </th>
               <th className="px-1 py-2 text-center text-[10px] sm:text-xs">
-                Warrior
+                brokelevel
               </th>
               {leaderboardType === 'global' && (
                 <>
                   <th className="px-1 py-2 text-center">
                     <Button variant="ghost" size="sm" onClick={() => handleSort('days_till_broke')} className="font-bold  hover:text-orange-900 p-0 text-[10px] sm:text-xs">
                       <ArrowUpDown className="mr-1 h-2 w-2 sm:h-3 sm:w-3" />
-                      <span className="hidden sm:inline">Days Till Broke</span>
-                      <span className="sm:hidden">Days To Broke</span>
+                      <span className="hidden sm:inline">Days Till broke</span>
+                      <span className="sm:hidden">DaysTobroke</span>
                     </Button>
                   </th>
                   <th className="px-1 py-2 text-center">
