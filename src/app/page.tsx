@@ -60,8 +60,8 @@ function LandingContent() {
       }, 2000);
     } else {
       setIsSubmitting(true);
-      const redirectUrl = process.env.NEXT_PUBLIC_APP_ENV === 'production'
-        ? process.env.NEXT_PUBLIC_REDIRECT_URL_PROD
+      const redirectUrl = process.env.NEXT_PUBLIC_APP_ENV_NEW === 'production'
+        ? process.env.NEXT_PUBLIC_REDIRECT_URL_PROD_NEW
         : process.env.NEXT_PUBLIC_REDIRECT_URL_DEV;
 
       console.log('Redirect URL:', redirectUrl); // For debugging
