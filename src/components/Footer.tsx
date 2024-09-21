@@ -16,14 +16,14 @@ const Footer = () => {
           <div className="space-x-4">
             <Link href="/contact" className="hover:underline">Contact</Link>
             <a href="https://twitter.com/brokedash" target="_blank" rel="noopener noreferrer" className="hover:underline">Twitter</a>
-            <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
-            <Link href="/terms" className="hover:underline">Terms of Service</Link>
+            <Link href="/privacypolicy" className="hover:underline">Privacy Policy</Link>
+            <Link href="/tos" className="hover:underline">Terms of Service</Link>
           </div>
         </div>
       ) : (
         <div className="flex justify-center space-x-4">
           <Link href="/contact" className="hover:underline">Contact</Link>
-          <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
+          <Link href="/privacypolicy" className="hover:underline">Privacy Policy</Link>
         </div>
       )}
     </footer>
