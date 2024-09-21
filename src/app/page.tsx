@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from 'next/navigation';
+import { posthog } from '@/lib/posthog';
 
 const scrollItems = [
   { emoji: '🍕', amount: '$150', status: 'Takeout tycoon in training' },
@@ -62,9 +63,7 @@ function LandingContent() {
       setIsSubmitting(true);
       const redirectUrl = process.env.NEXT_PUBLIC_APP_ENV_NEW === 'production'
         ? process.env.NEXT_PUBLIC_REDIRECT_URL_PROD_NEW
-        : process.env.NEXT_PUBLIC_REDIRECT_URL_DEV;
-
-      console.log('Redirect URL:', redirectUrl); // For debugging
+        : process.env.NEXT_PUBLIC_REDIRECT_URL_DEV; // For debugging
 
       const { error } = await supabase.auth.signInWithOtp({ 
         email,
@@ -84,6 +83,8 @@ function LandingContent() {
       } else {
         console.log('Magic link sent to:', email);
         setEmailSent(true);
+        // Track successful email submission
+        posthog.capture('email_submitted', { email });
       }
       setIsSubmitting(false);
     }
