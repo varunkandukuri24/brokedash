@@ -108,7 +108,7 @@ function LandingContent() {
           See who spends 💸 <br/> more on fo🥘d delivery than you
         </h1>
         <p className="text-base md:text-2xl mb-8 text-gray-800">
-          find your place in the food delivery chain 🦁
+          find your place in the food chain 🦁
         </p>
         {user ? (
           <>
