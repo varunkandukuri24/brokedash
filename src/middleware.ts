@@ -13,12 +13,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Allow access only from the US or India
-  if (country !== 'US') {
-    console.log('Access denied: country not US');
-    return new NextResponse('Access denied', { status: 403 });
-  }
-
   // Set a cookie with the country information
   const response = NextResponse.next();
   response.cookies.set('user_country', country, { 
@@ -27,7 +21,13 @@ export function middleware(request: NextRequest) {
     maxAge: 60 * 60 * 24 // 1 day
   });
 
-  console.log('Access allowed: country is US');
+  // Redirect non-US users to the waitlist page
+  if (country !== 'US' && !request.nextUrl.pathname.startsWith('/waitlist')) {
+    console.log('Redirecting to waitlist: country is not US');
+    return NextResponse.redirect(new URL('/waitlist', request.url));
+  }
+
+  console.log('Access allowed');
   return response;
 }
 
