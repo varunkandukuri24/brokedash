@@ -63,7 +63,7 @@ export default function Waitlist() {
           Join our Waitlist
         </h1>
         <p className="text-base md:text-2xl mb-8 text-gray-800">
-          We're excited to bring brokedash to your country soon! 🌍
+          We are excited to bring brokedash to your country soon! 🌍
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col items-center gap-4">
           <div className="w-2/3 md:w-full max-w-md">
