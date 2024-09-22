@@ -180,7 +180,7 @@ export default function Component() {
     const shareData = {
       title: 'Join me on brokedash',
       text: 'Check out this app to compare your food spending anonymously!',
-      url: `https://brokedash.vercel.app/?ref=${referralCode}`
+      url: `https://brokedash.com/?ref=${referralCode}`
     }
 
     if (navigator.share) {
